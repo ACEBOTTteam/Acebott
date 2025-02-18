@@ -42,6 +42,9 @@
   "Acebott.tm1650_displayOff|block": "4-Digit Tube |named %name| turn off",
   "Acebott.tm1650_showDecimal|block": "4-Digit Tube |named %name|show number|%n",
   "Acebott.tm1650_showString|block": "4-Digit Tube |named %name| show string|%s",
+  "Acebott.moveTime|block": "Go %dir at speed%speed",
+  "Acebott.RGB_Colour|block": "RGB_Colour",
+  "Acebott.stopcar|block": "stop",
   "Acebott|block": "Acebott",
   "AnalogReadPin.P0|block": "P0",
   "AnalogReadPin.P1|block": "P1",
@@ -176,5 +179,6 @@
   "{id:group}Ultrasonic Sensor": "Ultrasonic Sensor",
   "{id:subcategory}Display": "Display",
   "{id:subcategory}Executive": "Executive",
-  "{id:subcategory}Sensor": "Sensor"
+  "{id:subcategory}Sensor": "Sensor",
+  "{id:subcategory}Communication": "Communication"
 }
