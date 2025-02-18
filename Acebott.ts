@@ -2203,6 +2203,7 @@ namespace Acebott{
     export function Speech_Recognition_getCMD(cmd_in: number): boolean {
         return cmd_in == speech_cmd;
     }
+    
 
     //% blockId="Speech_Recognition_Init" 
     //% block="Speech Recognition Init TX at %asrTX"
@@ -2216,4 +2217,207 @@ namespace Acebott{
         })
     }
     // Speech Recognition @end
+
+    export enum RGBLights {
+        //% blockId="Right_RGB" block="右"
+        RGB_L = 1,
+        //% blockId="Left_RGB" block="左"
+        RGB_R = 2,
+        //% blockId="ALL" block="全部"
+        ALL = 3
+    }
+
+    
+    //% block="设置%light车灯颜色 $color"
+    //% color.shadow="colorNumberPicker"
+    //% weight=65
+    //% group="Microbit car"
+    //% subcategory="Executive"
+    export function colorLight(light: RGBLights, color: number) {
+        let r: number, g: number, b: number = 0
+        r = color >> 16
+        g = (color >> 8) & 0xFF
+        b = color & 0xFF
+        basic.pause(5)
+        singleheadlights(light, r, g, b)
+    }
+
+    
+    //% inlineInputMode=inline
+    //% blockId=RGB block="分别设置%light车灯颜色 R:%r G:%g B:%b"
+    //% r.min=0 r.max=255
+    //% g.min=0 g.max=255
+    //% b.min=0 b.max=255
+    //% weight=60
+    //% group="Microbit car"
+    //% subcategory="Executive"
+    export function singleheadlights(light: RGBLights, r: number, g: number, b: number): void {
+        let buf = pins.createBuffer(5);
+        
+        buf[0] = 0x00;                  
+        buf[1] = r;		                
+        buf[2] = g;		                
+        buf[3] = b;
+        if (light == 1) { buf[4] = 0x04; pins.i2cWriteBuffer(0x18, buf); basic.pause(5); }
+
+        if (light == 2) { buf[4] = 0x05; pins.i2cWriteBuffer(0x18, buf); basic.pause(5); }
+
+        if (light == 3) { buf[4] = 0x06; pins.i2cWriteBuffer(0x18, buf); basic.pause(5); }             
+    }
+
+    
+    // Microbit Car  @start
+
+    export enum Direction {
+        //% block="前进" enumval=0
+        forward,
+        //% block="后退" enumval=1
+        backward,
+        //% block="左转" enumval=2
+        left,
+        //% block="右转" enumval=3
+        right
+    }
+
+    //% block="Stop car immediately"
+    //% subcategory="Executive"
+    //% group="Microbit car"
+    //% weight=70
+    export function stopcar(): void {
+        let buf = pins.createBuffer(5);
+        buf[0] = 0x00;                      //补位
+        buf[1] = 0x00;		                //左轮停止
+        buf[2] = 0x00;		                //右轮停止
+        buf[3] = 0;	                        //速度	
+        buf[4] = 0;	                        //速度	
+
+        pins.i2cWriteBuffer(0x18, buf);     //数据发送
+    }
+
+    //% blockId=MotorRun block="左轮速度 %lspeed\\% |右轮速度 %rspeed\\%"
+    //% lspeed.min=-100 lspeed.max=100
+    //% rspeed.min=-100 rspeed.max=100
+    //% weight=100
+    //% group="Microbit car"
+    //% subcategory="Executive"
+    export function motors(lspeed: number = 50, rspeed: number = 50): void {
+        let buf = pins.createBuffer(5);
+        if (lspeed > 100) {
+            lspeed = 100;
+        } else if (lspeed < -100) {
+            lspeed = -100;
+        }
+        if (rspeed > 100) {
+            rspeed = 100;
+        } else if (rspeed < -100) {
+            rspeed = -100;
+        }
+        if (lspeed > 0) {
+            buf[0] = 0x00;                      
+            buf[1] = 0x02;		                
+            buf[3] = lspeed;	              
+        }
+        else {
+            lspeed = ~lspeed;
+            buf[0] = 0x00;                     
+            buf[1] = 0x01;		                
+            buf[3] = lspeed;	              
+        }
+        if (rspeed > 0) {
+            buf[0] = 0x00;                      
+            buf[2] = 0x02;		               
+            buf[4] = rspeed;	               
+        }
+        else {
+            rspeed = ~rspeed;
+            buf[0] = 0x00;                      
+            buf[2] = 0x01;		                
+            buf[4] = rspeed;	               
+        }
+        pins.i2cWriteBuffer(0x18, buf);    
+    }
+
+    
+    //% block="设置方向 %dir  |速度 %speed\\%"
+    //% weight=100
+    //% speed.min=0 speed.max=100
+    //% group="Microbit car"
+    //% subcategory="Executive"
+    export function moveTime(dir: Direction, speed: number = 50): void {
+
+        let buf = pins.createBuffer(5);
+        if (dir == 0) {                      
+            buf[0] = 0x00;                  
+            buf[1] = 0x02;		             
+            buf[2] = 0x02;		            
+            buf[3] = speed;	                 
+            buf[4] = speed;	            
+
+            pins.i2cWriteBuffer(0x18, buf);  
+        }
+        if (dir == 1) {                  
+            buf[0] = 0x00;                  
+            buf[1] = 0x01;		           
+            buf[2] = 0x01;		          
+            buf[3] = speed;	               
+            buf[4] = speed;	                
+
+            pins.i2cWriteBuffer(0x18, buf);  
+        }
+        if (dir == 2) {                    
+            buf[0] = 0x00;                 
+            buf[1] = 0x01;		           
+            buf[2] = 0x02;		             
+            buf[3] = speed;	             
+            buf[4] = speed;	               
+
+            pins.i2cWriteBuffer(0x18, buf); 
+        }
+        if (dir == 3) {                   
+            buf[0] = 0x00;                
+            buf[1] = 0x02;		         
+            buf[2] = 0x01;		          
+            buf[3] = speed;	            
+            buf[4] = speed;	            
+            
+            pins.i2cWriteBuffer(0x18, buf);  
+        }
+
+    }
+
+    
+    // trackSide Car  @start
+
+    let _initEvents = true
+
+    export enum MbPins {
+        //% block="左" 
+        Left = DAL.MICROBIT_ID_IO_P1,
+        //% block="右" 
+        Right = DAL.MICROBIT_ID_IO_P0
+    }
+
+    
+    //% blockId=tracking block="tracking at %pin get value"
+    //% state.fieldEditor="gridpicker" state.fieldOptions.columns=2
+    //% side.fieldEditor="gridpicker" side.fieldOptions.columns=2
+    //% weight=45
+    //% subcategory="Executive"
+    export function tracking(side: MbPins): number {
+        pins.setPull(AnalogReadWritePin.P0, PinPullMode.PullUp); 
+        pins.setPull(AnalogReadWritePin.P1, PinPullMode.PullUp);  
+        let left_tracking = pins.analogReadPin(AnalogReadWritePin.P0); 
+        let right_tracking = pins.analogReadPin(AnalogReadWritePin.P1); 
+
+        if (side == MbPins.Left) {
+            return left_tracking;
+        }
+        else if (side == MbPins.Right) {
+            return right_tracking;
+        }
+        else {
+            return 0;
+        }
+    }
+    // trackSide Car  @end
 }
