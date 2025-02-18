@@ -54,6 +54,12 @@
   "DHT11Type.Temperature_F|block": "华氏温度(℉)",
   "IR_ButtonAction.Pressed|block": "按下",
   "IR_ButtonAction.Released|block": "松开",
+  "Acebott.moveTime|block": "往%dir方向 速度为 %speed",
+  "Acebott.stopcar|block": "停止",
+  "Acebott.RGB_Colour|block": "RGB循环亮灯",
+  "Acebott.moveTime|param|dir": "设定行駛方向",
+  "Acebott.moveTime|param|speed": "设定行駛速度",
+  "Acebott.tracking|block": "|%pin|循迹读取值",
   "{id:category}Acebott": "Acebott",
   "{id:group}130 DC Motor": "130直流电机",
   "{id:group}4-Digit Tube": "4位数码管",
@@ -76,9 +82,9 @@
   "{id:group}Temperature and Humidity": "温湿度传感器",
   "{id:group}Trace Sensor": "巡线传感器",
   "{id:group}Ultrasonic Sensor": "超声波传感器",
+  "{id:group}Microbit car": "Microbit 小车",
   "{id:subcategory}AI Module": "人工智能类",
   "{id:subcategory}Display": "显示类",
   "{id:subcategory}Executive": "执行类",
   "{id:subcategory}Sensor": "传感类"
-
 }
