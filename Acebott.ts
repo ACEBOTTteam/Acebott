@@ -2279,19 +2279,19 @@ namespace Acebott{
         right
     }
 
-    //% block="Stop car immediately"
+    //% block="停止"
     //% subcategory="Executive"
     //% group="Microbit car"
     //% weight=70
     export function stopcar(): void {
         let buf = pins.createBuffer(5);
-        buf[0] = 0x00;                      //补位
-        buf[1] = 0x00;		                //左轮停止
-        buf[2] = 0x00;		                //右轮停止
-        buf[3] = 0;	                        //速度	
-        buf[4] = 0;	                        //速度	
+        buf[0] = 0x00;                     
+        buf[1] = 0x00;		                
+        buf[2] = 0x00;		              
+        buf[3] = 0;	                       
+        buf[4] = 0;	                       
 
-        pins.i2cWriteBuffer(0x18, buf);     //数据发送
+        pins.i2cWriteBuffer(0x18, buf);     
     }
 
     //% blockId=MotorRun block="左轮速度 %lspeed\\% |右轮速度 %rspeed\\%"
@@ -2398,7 +2398,7 @@ namespace Acebott{
     }
 
     
-    //% blockId=tracking block="tracking at %pin get value"
+    //% blockId=tracking block=" %pin 循迹取值"
     //% state.fieldEditor="gridpicker" state.fieldOptions.columns=2
     //% side.fieldEditor="gridpicker" side.fieldOptions.columns=2
     //% weight=45
