@@ -2238,7 +2238,6 @@ namespace Acebott{
         r = color >> 16
         g = (color >> 8) & 0xFF
         b = color & 0xFF
-        basic.pause(5)
         singleheadlights(light, r, g, b)
     }
 
