@@ -2227,23 +2227,22 @@ namespace Acebott{
          ALL = 3
     }
 
-    
-    //% blockId=RGB_color block="Set LED headlights %light color $color"
+    //% blockId=colorLight block="Set LED %light color $color"
     //% color.shadow="colorNumberPicker"
     //% weight=65
     //% group="Microbit car"
     //% subcategory="Executive"
-    export function colorLight(light: RGBLights, color: number) {
-        let r: number, g: number, b: number = 0
-        r = color >> 16
-        g = (color >> 8) & 0xFF
-        b = color & 0xFF
-        singleheadlights(light, r, g, b)
+    export function colorLight(light: RGBLights, color: number): void {
+        let r: number, g: number, b: number;
+        r = (color >> 16) & 0xFF; // 提取红色分量
+        g = (color >> 8) & 0xFF;  // 提取绿色分量
+        b = color & 0xFF;         // 提取蓝色分量
+        singleheadlights(light, r, g, b); // 调用底层函数设置灯光颜色
     }
 
     
     //% inlineInputMode=inline
-    //% blockId=RGB block="Set the %light color R:%r G:%g B:%b"
+    //% blockId=singleheadlights block="Set %light lamp color R:%r G:%g B:%b"
     //% r.min=0 r.max=255
     //% g.min=0 g.max=255
     //% b.min=0 b.max=255
@@ -2279,7 +2278,7 @@ namespace Acebott{
         right
     }
 
-    //% blockId=car_stop block="Stop"
+    //% blockId=stopcar block="Stop"
     //% subcategory="Executive"
     //% group="Microbit car"
     //% weight=70
@@ -2295,7 +2294,7 @@ namespace Acebott{
         pins.i2cWriteBuffer(0x18, buf);     //数据发送
     }
 
-    //% blockId=MotorRun block="Left wheel speed %lspeed\\% |Right wheel speed %rspeed\\%"
+    //% blockId=motors block="Left wheel speed %lspeed\\% | right speed %rspeed\\%"
     //% lspeed.min=-100 lspeed.max=100
     //% rspeed.min=-100 rspeed.max=100
     //% weight=100
@@ -2347,7 +2346,7 @@ namespace Acebott{
     }
 
     
-    //% blockId=Wheel_speed_setting block="Set direction %dir  |speed %speed\\%"
+    //% blockId=c block="Set direction %dir | speed %speed"
     //% weight=100
     //% speed.min=0 speed.max=100
     //% group="Microbit car"
@@ -2505,14 +2504,14 @@ namespace Acebott{
         off,
     }
 
-    // 定义控制震动电机的函数
-    //% blockId = Vibration_motor_control block="震动电机 %condition"
+    // 控制震动电机
+    //% blockId=Vibrating_machine block="震动电机 %condition"
     //% group="Microbit controller"
     //% subcategory="Executive"
     export function Vibrating_machine(condition: Vibration_motor_condition): void {
         if (condition === Vibration_motor_condition.on) {
             pins.digitalWritePin(DigitalPin.P12, 1); // 打开震动电机
-        } else if (condition === Vibration_motor_condition.off) {
+        } else {
             pins.digitalWritePin(DigitalPin.P12, 0); // 关闭震动电机
         }
     }
