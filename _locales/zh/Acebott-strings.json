@@ -54,9 +54,8 @@
   "DHT11Type.Temperature_F|block": "华氏温度(℉)",
   "IR_ButtonAction.Pressed|block": "按下",
   "IR_ButtonAction.Released|block": "松开",
-  "Acebott.moveTime|block": "往%dir方向 速度为 %speed",
-  "Acebott.car_stop |block":  "停止",
-  
+
+  "Acebott.car_stop|block":  "停止",
   "Acebott.Direction.backward|block": "后退",
   "Acebott.Direction.forward|block": "前进",
   "Acebott.Direction.left|block": "左",
@@ -68,10 +67,12 @@
 
   "Acebott.MbPins.Left|block": "左",
   "Acebott.MbPins.Right|block": "右",
-  "Acebott.RGB |block":"设置车头RGB灯 %light 颜色为 R:%r G:%g B:%b",
-  "Acebott.Wheel_speed_setting |block":"设置方向 %dir  |速度 %speed\\%",
+  "Acebott.singleheadlights|block":"设置%光灯颜色R:% R G:% G B:% B",
+  "Acebott.motors|block": "左轮速度 %lspeed\\% |右路速度 %rspeed\\%",
+  "Acebott.colorLight|block":"设置LED %light 灯颜色 $color",
+  "Acebott.moveTime|block":"设置方向 %dir  |速度 %speed\\%",
   "Acebott.moveTime|param|dir": "设定行駛方向",
-  "Acebott.moveTime|param|speed": "设定行駛速度",
+  "Acebott.moveTime|param|speed": "设定行驶速度",
   "Acebott.tracking|block": "|%pin|循迹读取值",
 
   "Acebott.Four_key.up|block": "上",
@@ -80,11 +81,13 @@
   "Acebott.Four_key.right|block": "右",
   "Acebott.Vibration_motor_condition.on|block": "开",
   "Acebott.Vibration_motor_condition.off|block": "关",
+  
+
   "Acebott.Rocker_Y_read|block": "读取摇杆Y",
   "Acebott.Rocker_X_read|block": "读取摇杆X",
   "Acebott.Rocker_Key_read|block": "读取摇杆按键",
   "Acebott.Four_bit_key|block": "读取 %dir 按键",
-  "Acebott.Vibrating_machine|block": "震动电机 %condition ", 
+  "Acebott.Vibrating_machine|block": "震动电机 %condition",
 
   "{id:category}Acebott": "Acebott",
   "{id:group}130 DC Motor": "130直流电机",
