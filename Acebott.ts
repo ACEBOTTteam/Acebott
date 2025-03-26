@@ -2462,9 +2462,9 @@ namespace Acebott{
     export function joystick(dir: Rocker): number | boolean {
         switch (dir) {
             case Rocker.x:
-                return pins.analogReadPin(AnalogPin.P1); // 读取摇杆 X 值
+                return pins.analogReadPin(AnalogPin.P2); // 读取摇杆 X 值
             case Rocker.y:
-                return pins.analogReadPin(AnalogPin.P2); // 读取摇杆 Y 值
+                return pins.analogReadPin(AnalogPin.P1); // 读取摇杆 Y 值
             case Rocker.key:
                 pins.setPull(DigitalPin.P8, PinPullMode.PullUp); // 设置按键引脚为上拉模式
                 return pins.digitalReadPin(DigitalPin.P8) === 0; // 读取按键状态，返回布尔值
