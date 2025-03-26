@@ -2251,19 +2251,27 @@ namespace Acebott{
     //% subcategory="Executive"
     export function singleheadlights(light: RGBLights, r: number, g: number, b: number): void {
         let buf = pins.createBuffer(5);
-        
-        buf[0] = 0x00;                  
-        buf[2] = r;		                
-        buf[3] = g;		                
+
+        buf[0] = 0x00;
+        buf[2] = r;
+        buf[3] = g;
         buf[4] = b;
 
-        if (light == 1) { buf[1] = 0x03; pins.i2cWriteBuffer(0x18, buf); basic.pause(10) }
-
-        else if (light == 2) { buf[1] = 0x04; pins.i2cWriteBuffer(0x18, buf); basic.pause(10) }
-
-         else if (light == 3) { buf[1] = 0x05; pins.i2cWriteBuffer(0x18, buf);  }               
+        if (light == 1) {
+            buf[1] = 0x03;
+            pins.i2cWriteBuffer(0x18, buf);
+            basic.pause(10);
+        }
+        else if (light == 2) {
+            buf[1] = 0x04;
+            pins.i2cWriteBuffer(0x18, buf);
+            basic.pause(10);
+        }
+        else if (light == 3) {
+            buf[1] = 0x05;
+            pins.i2cWriteBuffer(0x18, buf);
+        }
     }
-
     
     // Microbit Car  @start
 
@@ -2438,26 +2446,31 @@ namespace Acebott{
 
     // Microbit controller  @start
 
-    //% blockId=Rocker_X_read block="读取摇杆X"
-    //% group="Microbit controller"
-    //% subcategory="Executive"
-    export function Rocker_X_read(): number {
-        return pins.analogReadPin(AnalogPin.P1);
+    export enum Rocker {
+        //% block="X" enumval=0
+        x,
+        //% block="Y" enumval=1
+        y,
+        //% block="Key" enumval=2
+        key,
     }
 
-    //% blockId=Rocker_Y_read block="读取摇杆Y"
-    //% group="Microbit controller"
-    //% subcategory="Executive"
-    export function Rocker_Y_read(): number {
-        return pins.analogReadPin(AnalogPin.P2);
-    }
 
-    //% blockId=Rocker_Key_read block="读取摇杆按键"
+    //% blockId=joystick block="Read joystick value %dir "
     //% group="Microbit controller"
     //% subcategory="Executive"
-    export function Rocker_Key_read(): number {
-        pins.setPull(DigitalPin.P8, PinPullMode.PullUp)
-        return pins.digitalReadPin(DigitalPin.P8);
+    export function joystick(dir: Rocker): number | boolean {
+        switch (dir) {
+            case Rocker.x:
+                return pins.analogReadPin(AnalogPin.P1); // 读取摇杆 X 值
+            case Rocker.y:
+                return pins.analogReadPin(AnalogPin.P2); // 读取摇杆 Y 值
+            case Rocker.key:
+                pins.setPull(DigitalPin.P8, PinPullMode.PullUp); // 设置按键引脚为上拉模式
+                return pins.digitalReadPin(DigitalPin.P8) === 0; // 读取按键状态，返回布尔值
+            default:
+                return false; // 如果传入无效的方向，返回 false
+        }
     }
 
     export enum Four_key {
@@ -2471,7 +2484,7 @@ namespace Acebott{
         right
     }
 
-    //% blockId=Four_bit_key block="读取 Four_key %dir 按键"
+    //% blockId=Four_bit_key block="Read the %dir key"
     //% group="Microbit controller"
     //% subcategory="Executive"
     export function Four_bit_key(dir: Four_key): boolean {
@@ -2505,7 +2518,7 @@ namespace Acebott{
     }
 
     // 控制震动电机
-    //% blockId=Vibrating_machine block="震动电机 %condition"
+    //% blockId=Vibrating_machine block="Vibrating machine %condition"
     //% group="Microbit controller"
     //% subcategory="Executive"
     export function Vibrating_machine(condition: Vibration_motor_condition): void {
