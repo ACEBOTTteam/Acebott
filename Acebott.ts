@@ -2501,9 +2501,9 @@ namespace Acebott{
             case Four_key.down:
                 return pins.digitalReadPin(DigitalPin.P14) === 0;
             case Four_key.left:
-                return pins.digitalReadPin(DigitalPin.P15) === 0;
-            case Four_key.right:
                 return pins.digitalReadPin(DigitalPin.P13) === 0;
+            case Four_key.right:
+                return pins.digitalReadPin(DigitalPin.P15) === 0;
             default:
                 return false; // 如果传入无效的方向，返回 false
         }
