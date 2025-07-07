@@ -2240,7 +2240,6 @@ namespace Acebott{
         singleheadlights(light, r, g, b); // 调用底层函数设置灯光颜色
     }
 
-    
     //% inlineInputMode=inline
     //% blockId=singleheadlights block="Set %light lamp color R:%r G:%g B:%b"
     //% r.min=0 r.max=255
@@ -2407,7 +2406,6 @@ namespace Acebott{
         }
 
     }
-
     
     // Microbit Car  @start
 
@@ -2420,7 +2418,6 @@ namespace Acebott{
         Right = DAL.MICROBIT_ID_IO_P0
     }
 
-    
     //% blockId=tracking block="%pin tracking value"
     //% state.fieldEditor="gridpicker" state.fieldOptions.columns=2
     //% side.fieldEditor="gridpicker" side.fieldOptions.columns=2
@@ -2656,7 +2653,7 @@ namespace Acebott{
     //% subcategory="Executive"
     //% group="Microbit K210" 
     //% weight=95
-    export function recognizeColor(color: ColorSelection): boolean {
+    export function recognize_color(color: ColorSelection): boolean {
         if (set_mode != 1 || color_index != color) {
 
             let data_send = pins.createBuffer(8)
@@ -2697,7 +2694,7 @@ namespace Acebott{
     //% subcategory="Executive"
     //% group="Microbit K210"
     //% weight=90
-    export function recognizeCode(mode: RecognitionMode): boolean {
+    export function recognize_code(mode: RecognitionMode): boolean {
         // 检查是否需要切换模式
         if (set_mode != mode) {
             // 交通标志特殊处理
@@ -2784,7 +2781,7 @@ namespace Acebott{
     //% subcategory="Executive"
     //% group="Microbit K210"
     //% weight=85
-    export function getCodeData(data: CodeData): string {
+    export function get_code_data(data: CodeData): string {
         switch (data) {
             case CodeData.X: return x.toString()
             case CodeData.Y: return y.toString()
