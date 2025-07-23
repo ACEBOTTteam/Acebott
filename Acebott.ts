@@ -2582,60 +2582,59 @@ namespace Acebott{
     //% weight=95
     export function recognize_color(color: ColorSelection): boolean {
         if (set_mode != 1 || color_index != color) {
-
-            let data_send = pins.createBuffer(8)
-            data_send.setNumber(NumberFormat.UInt8LE, 0, 1)
-            data_send.setNumber(NumberFormat.UInt8LE, 1, color)
-            data_send.setNumber(NumberFormat.UInt8LE, 2, 600 >> 8)
-            data_send.setNumber(NumberFormat.UInt8LE, 3, 600 & 0xFF)
-            data_send.setNumber(NumberFormat.UInt8LE, 4, 100 >> 8)
-            data_send.setNumber(NumberFormat.UInt8LE, 5, 100 & 0xFF)
-            data_send.setNumber(NumberFormat.UInt8LE, 6, 13)
-            data_send.setNumber(NumberFormat.UInt8LE, 7, 10)
-            serial.writeBuffer(data_send)
-            basic.pause(100)
-            set_mode = 1
-            color_index = color
+            let data_send = pins.createBuffer(8);
+            data_send.setNumber(NumberFormat.UInt8LE, 0, 1);       // set_mode
+            data_send.setNumber(NumberFormat.UInt8LE, 1, color);   // color_index
+            data_send.setNumber(NumberFormat.UInt8LE, 2, 600 >> 8); // area_threshold高字节
+            data_send.setNumber(NumberFormat.UInt8LE, 3, 600 & 0xFF);// area_threshold低字节
+            data_send.setNumber(NumberFormat.UInt8LE, 4, 100 >> 8); // pixels_threshold高字节
+            data_send.setNumber(NumberFormat.UInt8LE, 5, 100 & 0xFF);// pixels_threshold低字节
+            data_send.setNumber(NumberFormat.UInt8LE, 6, 13);      // CR
+            data_send.setNumber(NumberFormat.UInt8LE, 7, 10);      // LF
+            serial.writeBuffer(data_send);
+            basic.pause(100);  // 与Arduino的delay(100)对应
+            set_mode = 1;
+            color_index = color;
         }
 
-        let available = serial.readBuffer(0)
-        if (available && available.length > 0) {
-            let data_len = available.getNumber(NumberFormat.UInt8LE, 0)
-            if (available.length >= data_len + 1) {
-                x = available.getNumber(NumberFormat.UInt16LE, 1)
-                y = available.getNumber(NumberFormat.UInt8LE, 3)
-                w = available.getNumber(NumberFormat.UInt16LE, 4)
-                h = available.getNumber(NumberFormat.UInt8LE, 6)
-                cx = available.getNumber(NumberFormat.UInt16LE, 7)
-                cy = available.getNumber(NumberFormat.UInt8LE, 9)
-                tag = ""
-                for (let i = 10; i < data_len + 1; i++) {
-                    tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, i))
-                }
-                return true
+        let received = serial.readBuffer(0);
+        if (received && received.length >= 12) { 
+            let data_len = received.getNumber(NumberFormat.UInt8LE, 0);
+
+            if (data_len < 9 || received.length < data_len + 1) {
+                return false;
             }
+
+            x = (received.getNumber(NumberFormat.UInt8LE, 1) << 8) | received.getNumber(NumberFormat.UInt8LE, 2);
+            y = received.getNumber(NumberFormat.UInt8LE, 3);
+            w = (received.getNumber(NumberFormat.UInt8LE, 4) << 8) | received.getNumber(NumberFormat.UInt8LE, 5);
+            h = received.getNumber(NumberFormat.UInt8LE, 6);
+            cx = (received.getNumber(NumberFormat.UInt8LE, 7) << 8) | received.getNumber(NumberFormat.UInt8LE, 8); 
+            cy = received.getNumber(NumberFormat.UInt8LE, 9);
+
+            tag = "";
+            for (let i = 10; i < data_len + 1; i++) {
+                tag += String.fromCharCode(received.getNumber(NumberFormat.UInt8LE, i));
+            }
+            return true;
         }
-        return false
+        return false;
     }
     //% blockId=recognize_code block=" %mode"
     //% subcategory="Executive"
     //% group="Microbit K210"
     //% weight=90
     export function recognize_code(mode: RecognitionMode): boolean {
-        // 检查是否需要切换模式
         if (set_mode != mode) {
-            // 交通标志特殊处理
             if (mode == RecognitionMode.TrafficCard || mode == RecognitionMode.TrafficSign) {
                 let data_send = pins.createBuffer(4)
-                data_send.setNumber(NumberFormat.UInt8LE, 0, 7)  // 固定包头7
-                // 卡片=1, 标识牌=2
+                data_send.setNumber(NumberFormat.UInt8LE, 0, 7)
                 data_send.setNumber(NumberFormat.UInt8LE, 1, mode == RecognitionMode.TrafficCard ? 1 : 2)
                 data_send.setNumber(NumberFormat.UInt8LE, 2, 13)
                 data_send.setNumber(NumberFormat.UInt8LE, 3, 10)
                 serial.writeBuffer(data_send)
-                set_mode = mode  // 注意这里设置为实际模式值(7或10)
+                set_mode = mode 
             }
-            // 其他模式
             else {
                 let data_send = pins.createBuffer(3)
                 data_send.setNumber(NumberFormat.UInt8LE, 0, mode)
@@ -2646,64 +2645,55 @@ namespace Acebott{
             }
             basic.pause(100)
         }
-
-        // 数据处理
-        let available = serial.readBuffer(0)
+        let available = serial.readBuffer(0);
         if (available && available.length > 0) {
-            let data_len = available.getNumber(NumberFormat.UInt8LE, 0)
-           
-            if (available.length >= data_len + 1) {
-                let payload = available.slice(2, data_len);
-                x = available.getNumber(NumberFormat.UInt16LE, 1)
-                y = available.getNumber(NumberFormat.UInt8LE, 3)
-                w = available.getNumber(NumberFormat.UInt16LE, 4)
-                h = available.getNumber(NumberFormat.UInt8LE, 6)
-                if (mode == RecognitionMode.Face) {
-                    cx = available.getNumber(NumberFormat.UInt16LE, 7)
-                    cy = available.getNumber(NumberFormat.UInt8LE, 9)
-                }
-                tag = ""
-                switch (mode) {
-                    case RecognitionMode.VisualPatrol:
-                       angle = available.getNumber(NumberFormat.UInt8LE, 1) - 60
-                        return true
-                    case RecognitionMode.MachineLearning:
-                    case RecognitionMode.Number:
-                        tag = available.getNumber(NumberFormat.UInt8LE, 1).toString()
-                        return true
+            let data_len = available.getNumber(NumberFormat.UInt8LE, 0);
 
-                    case RecognitionMode.Image:
-                        for (let n = 10; n < data_len + 1; n++) {
-                            tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, n))
-                        }
-                        return true
-                    case RecognitionMode.Face:
-                        for (let n = 10; n < data_len + 1; n++) {
-                            tag += available.getNumber(NumberFormat.UInt8LE, 10)
-                        }
-                        return true
+            if (data_len < 6 || available.length < data_len + 1) {
+                return false;
+            }
 
-                    case RecognitionMode.Barcode:
-                    case RecognitionMode.QRCode:
-                        for (let m = 7; m < data_len + 1; m++) {
-                                tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, m))
-                            }
-                        return true
+            x = (available.getNumber(NumberFormat.UInt8LE, 1) << 8) | available.getNumber(NumberFormat.UInt8LE, 2);
+            y = available.getNumber(NumberFormat.UInt8LE, 3);
+            w = (available.getNumber(NumberFormat.UInt8LE, 4) << 8) | available.getNumber(NumberFormat.UInt8LE, 5);
+            h = available.getNumber(NumberFormat.UInt8LE, 6);
 
-                    case RecognitionMode.TrafficCard:
-                    case RecognitionMode.TrafficSign:
+            if (mode == RecognitionMode.Face) {
+                if (data_len < 10) return false;  
+                cx = (available.getNumber(NumberFormat.UInt8LE, 7) << 8) | available.getNumber(NumberFormat.UInt8LE, 8);
+                cy = available.getNumber(NumberFormat.UInt8LE, 9);
+            }
 
-                        // tag = String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, 10))
-     
-                        for (let i = 10; i < data_len; i++) {
-                            tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, i));
-                        }
-                        return true
-                }
+            tag = "";
+            switch (mode) {
+                case RecognitionMode.VisualPatrol:
+                    angle = available.getNumber(NumberFormat.UInt8LE, 1) - 60;
+                    return true;
+
+                case RecognitionMode.MachineLearning:
+                case RecognitionMode.Number:
+                    tag = available.getNumber(NumberFormat.UInt8LE, 1).toString();
+                    return true;
+
+                case RecognitionMode.Barcode:
+                case RecognitionMode.QRCode:
+                    // 统一从第7字节开始，长度=data_len-6
+                    for (let m = 7; m < Math.min(data_len + 1, available.length); m++) {
+                        tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, m));
+                    }
+                    return true;
+
+                default:  // Image/Face/TrafficCard/TrafficSign
+                    // 统一从第10字节开始，长度=data_len-9
+                    for (let i = 10; i < Math.min(data_len + 1, available.length); i++) {
+                        tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, i));
+                    }
+                    return true;
             }
         }
-        return false
+        return false;
     }
+
     //% blockId=get_code_data block="get %data"
     //% subcategory="Executive"
     //% group="Microbit K210"
