@@ -110,6 +110,7 @@
     "Acebott.recognize_code|block": "%mode",
     "Acebott.recognize_color|block": "颜色识别 %color",
     "Acebott.get_code_data|block": "获取 %data",
+    "Acebott.clearSerialBuffer|block": "清空串口缓存",
     "{id:category}Acebott": "Acebott",
     "{id:group}130 DC Motor": "130直流电机",
     "{id:group}4-Digit Tube": "4位数码管",
