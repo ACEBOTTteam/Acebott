@@ -2527,7 +2527,8 @@ namespace Acebott{
     //% group="Microbit K210"
     //% weight=100
     export function K210_Init(): void {
-        serial.setRxBufferSize(64)
+        serial.setTxBufferSize(64);
+        serial.setRxBufferSize(64);
         serial.redirect(
             SerialPin.P14,
             SerialPin.P15,
@@ -2592,7 +2593,7 @@ namespace Acebott{
             data_send.setNumber(NumberFormat.UInt8LE, 6, 13);      // CR
             data_send.setNumber(NumberFormat.UInt8LE, 7, 10);      // LF
             serial.writeBuffer(data_send);
-            basic.pause(100);  // 与Arduino的delay(100)对应
+            basic.pause(100);  
             set_mode = 1;
             color_index = color;
         }
@@ -2620,20 +2621,22 @@ namespace Acebott{
         }
         return false;
     }
+
     //% blockId=recognize_code block=" %mode"
     //% subcategory="Executive"
     //% group="Microbit K210"
     //% weight=90
     export function recognize_code(mode: RecognitionMode): boolean {
+
         if (set_mode != mode) {
             if (mode == RecognitionMode.TrafficCard || mode == RecognitionMode.TrafficSign) {
                 let data_send = pins.createBuffer(4)
-                data_send.setNumber(NumberFormat.UInt8LE, 0, 7)
+                data_send.setNumber(NumberFormat.UInt8LE, 0, 7)  
                 data_send.setNumber(NumberFormat.UInt8LE, 1, mode == RecognitionMode.TrafficCard ? 1 : 2)
                 data_send.setNumber(NumberFormat.UInt8LE, 2, 13)
                 data_send.setNumber(NumberFormat.UInt8LE, 3, 10)
                 serial.writeBuffer(data_send)
-                set_mode = mode 
+                set_mode = mode  
             }
             else {
                 let data_send = pins.createBuffer(3)
@@ -2645,53 +2648,77 @@ namespace Acebott{
             }
             basic.pause(100)
         }
-        let available = serial.readBuffer(0);
+
+        // 数据处理
+        let available = serial.readBuffer(0)
         if (available && available.length > 0) {
-            let data_len = available.getNumber(NumberFormat.UInt8LE, 0);
+            const currentTime = input.runningTime();
+            const currentData = available.toHex();
 
-            if (data_len < 6 || available.length < data_len + 1) {
-                return false;
-            }
+            let data_len = available.getNumber(NumberFormat.UInt8LE, 0)
 
-            x = (available.getNumber(NumberFormat.UInt8LE, 1) << 8) | available.getNumber(NumberFormat.UInt8LE, 2);
-            y = available.getNumber(NumberFormat.UInt8LE, 3);
-            w = (available.getNumber(NumberFormat.UInt8LE, 4) << 8) | available.getNumber(NumberFormat.UInt8LE, 5);
-            h = available.getNumber(NumberFormat.UInt8LE, 6);
+            if (available.length >= data_len + 1) {
+                let payload = available.slice(2, data_len);
+                x = (available.getNumber(NumberFormat.UInt8LE, 1) << 8) | available.getNumber(NumberFormat.UInt8LE, 2);
+                y = available.getNumber(NumberFormat.UInt8LE, 3);
+                w = (available.getNumber(NumberFormat.UInt8LE, 4) << 8) | available.getNumber(NumberFormat.UInt8LE, 5);
+                h = available.getNumber(NumberFormat.UInt8LE, 6);
+                if (mode == RecognitionMode.Face) {
+                    cx = available.getNumber(NumberFormat.UInt16LE, 7)
+                    cy = available.getNumber(NumberFormat.UInt8LE, 9)
+                }
+                tag = ""
+                switch (mode) {
+                    case RecognitionMode.VisualPatrol:
+                        angle = available.getNumber(NumberFormat.UInt8LE, 1) - 60
+                        return true
+                    case RecognitionMode.MachineLearning:
+                    case RecognitionMode.Number:
+                        tag = available.getNumber(NumberFormat.UInt8LE, 1).toString()
+                        return true
 
-            if (mode == RecognitionMode.Face) {
-                if (data_len < 10) return false;  
-                cx = (available.getNumber(NumberFormat.UInt8LE, 7) << 8) | available.getNumber(NumberFormat.UInt8LE, 8);
-                cy = available.getNumber(NumberFormat.UInt8LE, 9);
-            }
+                    case RecognitionMode.Image:
+                        for (let n = 10; n < data_len + 1; n++) {
+                            tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, n))
+                        }
+                        return true
+                    case RecognitionMode.Face:
+                        for (let n = 10; n < data_len + 1; n++) {
+                            tag += available.getNumber(NumberFormat.UInt8LE, 10)
+                        }
+                        return true
 
-            tag = "";
-            switch (mode) {
-                case RecognitionMode.VisualPatrol:
-                    angle = available.getNumber(NumberFormat.UInt8LE, 1) - 60;
-                    return true;
+                    case RecognitionMode.Barcode:
+                    case RecognitionMode.QRCode:
+                        for (let m = 7; m < Math.min(data_len + 1, available.length); m++) {
+                            tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, m));
+                        }
+                        return true;
 
-                case RecognitionMode.MachineLearning:
-                case RecognitionMode.Number:
-                    tag = available.getNumber(NumberFormat.UInt8LE, 1).toString();
-                    return true;
+                    case RecognitionMode.TrafficCard:
+                    case RecognitionMode.TrafficSign:
 
-                case RecognitionMode.Barcode:
-                case RecognitionMode.QRCode:
-                    // 统一从第7字节开始，长度=data_len-6
-                    for (let m = 7; m < Math.min(data_len + 1, available.length); m++) {
-                        tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, m));
-                    }
-                    return true;
+                        // tag = String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, 10))
 
-                default:  // Image/Face/TrafficCard/TrafficSign
-                    // 统一从第10字节开始，长度=data_len-9
-                    for (let i = 10; i < Math.min(data_len + 1, available.length); i++) {
-                        tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, i));
-                    }
-                    return true;
+                        for (let i = 10; i < Math.min(data_len + 1, available.length); i++) {
+                            tag += String.fromCharCode(available.getNumber(NumberFormat.UInt8LE, i));
+                        }
+                        return true
+                }
             }
         }
-        return false;
+        return false
+    }
+
+    //% blockId=clearSerialBuffer block="clearSerialBuffer"
+    //% subcategory="Executive"
+    //% group="Microbit K210"
+    //% weight=85
+    export function clearSerialBuffer(): void  {
+        // 读取并丢弃所有缓存数据
+        while (serial.readBuffer(0) && serial.readBuffer(0).length > 0) {
+            serial.readBuffer(0);
+        }
     }
 
     //% blockId=get_code_data block="get %data"
@@ -2710,6 +2737,7 @@ namespace Acebott{
             case CodeData.Angle: return angle.toString()
             default: return "0"
         }
+
     }
 
 // Microbit K210  @end
