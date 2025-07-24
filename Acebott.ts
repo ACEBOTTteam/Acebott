@@ -2715,7 +2715,6 @@ namespace Acebott{
     //% group="Microbit K210"
     //% weight=85
     export function clearSerialBuffer(): void  {
-        // 读取并丢弃所有缓存数据
         while (serial.readBuffer(0) && serial.readBuffer(0).length > 0) {
             serial.readBuffer(0);
         }
