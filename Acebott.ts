@@ -2710,13 +2710,17 @@ namespace Acebott{
         return false
     }
 
-    //% blockId=clearSerialBuffer block="clearSerialBuffer"
+    //% block="clear serial buffer"
+    //% block.loc.zh="清空串口缓存"
+    //% block.loc.es="Limpiar buffer serial"
     //% subcategory="Executive"
-    //% group="Microbit K210"
+    //% group="Microbit K210" 
     //% weight=85
-    export function clearSerialBuffer(): void  {
-        while (serial.readBuffer(0) && serial.readBuffer(0).length > 0) {
-            serial.readBuffer(0);
+    export function clearSerialBuffer(): void {
+        let buffer = serial.readBuffer(0);
+        while (buffer && buffer.length > 0) {
+            buffer = serial.readBuffer(0);
+            basic.pause(1); // 防止忙等待
         }
     }
 
