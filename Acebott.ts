@@ -2527,7 +2527,6 @@ namespace Acebott{
     //% group="Microbit K210"
     //% weight=100
     export function K210_Init(): void {
-        serial.setTxBufferSize(64);
         serial.setRxBufferSize(64);
         serial.redirect(
             SerialPin.P14,
