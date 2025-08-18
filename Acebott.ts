@@ -637,7 +637,7 @@ namespace Acebott{
     class TM1650Class {
         public displayDigitsRaw: number[] = [0, 0, 0, 0]
 
-        constructor(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.) {
+        constructor(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.P0) {
             this.reconfigure(clock, data)
         }
         public setSpeed( baud : number = 8333 ) : void {
@@ -653,7 +653,7 @@ namespace Acebott{
                 this.halfPulseWidth = 1
             }
         }
-        public reconfigure(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.) : void {
+        public reconfigure(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.P0) : void {
             this.clockPin = clock
             this.dataPin = data
             pins.digitalWritePin(this.clockPin, 0)
@@ -857,7 +857,7 @@ namespace Acebott{
             return c
         }
         private clockPin: DigitalPin = DigitalPin.P1
-        private dataPin: DigitalPin = DigitalPin.
+        private dataPin: DigitalPin = DigitalPin.P0
         private pulseWidth: number = 120
         private halfPulseWidth: number = 60
         private charToIndex(c: number) {
