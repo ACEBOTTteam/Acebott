@@ -637,7 +637,7 @@ namespace Acebott{
     class TM1650Class {
         public displayDigitsRaw: number[] = [0, 0, 0, 0]
 
-        constructor(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.P0) {
+        constructor(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.) {
             this.reconfigure(clock, data)
         }
         public setSpeed( baud : number = 8333 ) : void {
@@ -653,7 +653,7 @@ namespace Acebott{
                 this.halfPulseWidth = 1
             }
         }
-        public reconfigure(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.P0) : void {
+        public reconfigure(clock: DigitalPin = DigitalPin.P1, data: DigitalPin = DigitalPin.) : void {
             this.clockPin = clock
             this.dataPin = data
             pins.digitalWritePin(this.clockPin, 0)
@@ -857,7 +857,7 @@ namespace Acebott{
             return c
         }
         private clockPin: DigitalPin = DigitalPin.P1
-        private dataPin: DigitalPin = DigitalPin.P0
+        private dataPin: DigitalPin = DigitalPin.
         private pulseWidth: number = 120
         private halfPulseWidth: number = 60
         private charToIndex(c: number) {
@@ -1003,7 +1003,7 @@ namespace Acebott{
    }
 
    //% blockId=tm1650_configure block="4-Digit Tube |named %name| with CLK %clk|DIO %dio"
-   //% name.defl="1" clk.defl=DigitalWritePin.P0 dio.defl=DigitalWritePin.P1
+   //% name.defl="1" clk.defl=DigitalWritePin. dio.defl=DigitalWritePin.P1
    //% subcategory="Display"
    //% group="4-Digit Tube"
    export function tm1650_configure(name: string = "1", clk:DigitalWritePin, dio:DigitalWritePin) : void {
@@ -1239,7 +1239,7 @@ namespace Acebott{
     //% weight=70
     //% inlineInputMode=inline
     //% speed.min=-255 speed.max=255
-    //% _INA.defl=AnalogWritePin.P0
+    //% _INA.defl=AnalogWritePin.
     //% _INB.defl=DigitalWritePin.P1
     //% speed.defl=100
     //% group="130 DC Motor"
@@ -2439,8 +2439,8 @@ namespace Acebott{
     export function tracking(side: MbPins): number {
         pins.setPull(AnalogReadWritePin.P0, PinPullMode.PullUp); 
         pins.setPull(AnalogReadWritePin.P1, PinPullMode.PullUp);  
-        let left_tracking = pins.analogReadPin(AnalogReadWritePin.P0); 
-        let right_tracking = pins.analogReadPin(AnalogReadWritePin.P1); 
+        let left_tracking = pins.analogReadPin(AnalogReadWritePin.P1); 
+        let right_tracking = pins.analogReadPin(AnalogReadWritePin.P0); 
 
         if (side == MbPins.Left) {
             return left_tracking;
