@@ -106,7 +106,7 @@
     "{id:group}Temperature and Humidity": "温湿度传感器",
     "{id:group}Trace Sensor": "巡线传感器",
     "{id:group}Ultrasonic Sensor": "超声波传感器",
-    "{id:group}Microbit car": "Microbit 小车",
+    "{id:group}Microbit Car": "Microbit 小车",
     "{id:group}Microbit controller": "Microbit 手柄",
     "{id:group}Microbit K210": "视觉模块",    
     "{id:subcategory}AI Module": "人工智能类",
