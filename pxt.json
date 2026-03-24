@@ -3,21 +3,27 @@
     "version": "0.0.1",
     "description": "Acebott extension for micro:bit",
     "license": "MIT",
-"icon":"https://github.com/ACEBOTTteam/pxt-acebott/blob/main/icon_1.png",
     "dependencies": {
         "core": "*"
     },
     "files": [
         "README.md",
         "Acebott.ts",
-        "_locales/zh/Acebott-strings.json"
+        "_locales/zh/Acebott-strings.json",
+        "AcebottColor.ts",
+        "AcebottOled.ts"
     ],
     "testFiles": [
         "test.ts"
     ],
     "public": true,
+    "targetVersions": {
+        "target": "8.0.18",
+        "targetId": "microbit"
+    },
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "blocksprj"
+    "preferredEditor": "tsprj",
+    "icon": "https://github.com/ACEBOTTteam/pxt-acebott/blob/main/icon_1.png"
 }
