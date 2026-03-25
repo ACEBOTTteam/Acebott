@@ -11,7 +11,8 @@
         "Acebott.ts",
         "_locales/zh/Acebott-strings.json",
         "AcebottColor.ts",
-        "AcebottOled.ts"
+        "AcebottOled.ts",
+        "AcebottBMP280.ts"
     ],
     "testFiles": [
         "test.ts"

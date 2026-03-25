@@ -1267,7 +1267,8 @@ namespace Acebott {
         return pins.analogReadPin(port)
     }
 
-    //% blockId=obstacle_block="Infrared obstacle at %pin get value"
+    //% blockId=obstacle 
+    //% block="Infrared obstacle at %pin get value"
     //% weight=70
     //% group="infrared bostacle avoidance"
     //% subcategory="Sensor"
@@ -1275,7 +1276,8 @@ namespace Acebott {
         return pins.digitalReadPin(pin)
     }
 
-    //% blockId=Tilt_block="Tilt Sensor at %pin get value"
+    //% blockId=Tilt 
+    //% block="Tilt Sensor at %pin get value"
     //% weight=70
     //% group="Tilt Sensor"
     //% subcategory="Sensor"
@@ -2658,6 +2660,10 @@ namespace Acebott {
     let oledInit = false;
     let oled: AcebottOled;
 
+    // BMP280 相关代码
+    let bmp280Init = false;
+    let bmp280: AcebottBMP280;
+
     function initColor(): void {
         if (!sugarColorInit) {
             sugarColor = new SugarColor()
@@ -2671,7 +2677,13 @@ namespace Acebott {
             oledInit = true
         }
     }
-
+    
+    function initBMP280(): void {
+        if (!bmp280Init) {
+            bmp280 = new AcebottBMP280()
+            bmp280Init = true
+        }
+    }
 /*    // % blockId=colorUpdate block="color sensor update value"
     // % subcategory="Sensor"
     // % group="ColorModules-V2"   */
@@ -2735,5 +2747,35 @@ namespace Acebott {
     export function oledClear(): void {
         initOLED()
         oled.clear()
+    }
+
+    // BMP280 相关代码
+
+    //% blockId=bmp280GetTemperature block="BMP280 get temperature (°C)"
+    //% subcategory="Sensor"
+    //% group="Atmospheric Pressure Sensor"
+    export function bmp280GetTemperature(): number {
+        initBMP280()
+        let temp = bmp280.getTemperatureFloat()
+        // 确保返回两位小数
+        return Math.round(temp * 100) / 100
+    }
+
+    //% blockId=bmp280GetPressure block="BMP280 get pressure (hPa)"
+    //% subcategory="Sensor"
+    //% group="Atmospheric Pressure Sensor"
+    export function bmp280GetPressure(): number {
+        initBMP280()
+        let pressure = bmp280.getPressureHpa()
+        // 确保返回两位小数
+        return Math.round(pressure * 100) / 100
+    }
+
+    //% blockId=bmp280SetAddress block="BMP280 set address %addr"
+    //% subcategory="Sensor"
+    //% group="Atmospheric Pressure Sensor"
+    export function bmp280SetAddress(addr: BMP280_I2C_ADDRESS): void {
+        initBMP280()
+        bmp280.setAddress(addr)
     }
 }
