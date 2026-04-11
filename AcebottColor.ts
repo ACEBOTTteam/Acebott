@@ -25,6 +25,8 @@ let BH1745NUC_ADC_GAIN_1 = 0
 let BH1745NUC_ADC_GAIN_2 = 1
 let BH1745NUC_ADC_GAIN_16 = 2
 let BH1745NUC_DEFAULT_RESERVED = 2
+
+// 不要使用 export，直接定义 class
 class SugarColor {
     red: number
     green: number
@@ -32,6 +34,7 @@ class SugarColor {
     hue: number
     lm: number
     hexColor: number
+
     constructor() {
         this.red = 0
         this.green = 0
@@ -43,6 +46,7 @@ class SugarColor {
         this.write_default()
         serial.writeString("init")
     }
+
     time_config(): void {
         let buf = pins.createBuffer(2);
         buf[0] = BH1745NUC_REG_MODE_CONTROL1
@@ -127,5 +131,48 @@ class SugarColor {
                 return this.hue
         }
         return this.red
+    }
+
+    // 新增：颜色识别方法
+    detectColor(): string {
+        this.update()
+
+        let redRaw = this.red
+        let greenRaw = this.green
+        let blueRaw = this.blue
+
+        let colorName = ""
+
+        // 颜色识别对比
+        if (redRaw > 240 && blueRaw < 120 && greenRaw < 160)  {
+            colorName = "red"//colorName = "Rojo"
+        } else if (redRaw < 100 && blueRaw < 200 && greenRaw > 100)  {
+            colorName = "green"//colorName = "Verde"
+        } else if (redRaw < 100 && blueRaw > 240 && greenRaw < 210)  {
+            colorName = "blue"//colorName = "Azul"
+        } else if (redRaw > 140 && greenRaw > 140 && blueRaw < 140) {
+            colorName = "yellow"//colorName = "Amarillo"
+        } else if (redRaw > 180 && blueRaw > 180 && greenRaw < 180) {
+            colorName = "purple"//colorName = "Púrpura"
+        } else if (greenRaw > 200 && blueRaw > 180 && redRaw < 180) {
+            colorName = "cyan"//colorName = "Cyan"
+        } else if (redRaw > 250 && greenRaw > 250 && blueRaw > 250) {
+            colorName = "White"//colorName = "Blanco"
+        } else if (redRaw < 50 && greenRaw < 50 && blueRaw < 50) {
+            colorName = "Black"//colorName = "Negro"
+        } else {
+            colorName = "unknown"//colorName = "Desconocido"
+        }
+
+        // 打印格式：Rojo(R-240, G-15, B-20)
+        serial.writeString(colorName)
+        serial.writeString("(R-")
+        serial.writeNumber(redRaw)
+        serial.writeString(", G-")
+        serial.writeNumber(greenRaw)
+        serial.writeString(", B-")
+        serial.writeNumber(blueRaw)
+        serial.writeLine(")")
+        return colorName
     }
 }

@@ -561,7 +561,7 @@ namespace Acebott {
     * @param index Servo Channel; eg: S1, S2
     * @param degree [0-180] degree of servo; eg: 0, 90, 180
    */
-    //% blockId=Servo_IIC block="Servo|%index|degree %degree"
+    //% blockId=Servo_IIC block="180 Servo|%index|degree %degree"
     //% degree.min=0 degree.max=180
     //% group="Servo"
     //% subcategory="Executive"
@@ -574,7 +574,7 @@ namespace Acebott {
         setPwm(index * 5, 0, value)
     }
 
-    //% blockId=Servo_IO block="Servo|%pin|degree %degree"
+    //% blockId=Servo_IO block="180 Servo|%pin|degree %degree"
     //% degree.min=0 degree.max=180
     //% group="Servo"
     //% subcategory="Executive"
@@ -584,6 +584,36 @@ namespace Acebott {
         if (degree < 0) degree = 0
 
         pins.servoWritePin(port, degree)
+    }
+
+    export enum ServoDirection {
+        //% block="forward"
+        Forward = 1,
+        //% block="reverse"
+        Reverse = -1
+    }
+    
+    //% blockId=servoRunDir block="360 Servo %pin run %direction speed %speed"
+    //% subcategory="Executive"
+    //% group="Servo"
+    //% speed.min=0 speed.max=100
+    export function servoRunDir(pin: ServoPin, direction: ServoDirection, speed: number): void {
+        let s = initServo(pin)
+
+        if (speed < 0) speed = 0
+        if (speed > 100) speed = 100
+
+        let finalSpeed = speed * direction
+
+        s.run(finalSpeed)
+    }
+
+    //% blockId=servoStop block="360 Servo %pin stop"
+    //% subcategory="Executive"
+    //% group="Servo"
+    export function servoStop(pin: ServoPin): void {
+        let s = initServo(pin)
+        s.stop()
     }
 
     // Relay @start
@@ -598,14 +628,29 @@ namespace Acebott {
     // Relay @end
 
     // RGB @start
-    //% blockId=setRGB block="RGB at %pin| set brightness %v"
+    //% blockId=setRGB block="Turn led R %rPin G %gPin B %bPin Set brightness at (R %rValue G %gValue B %bValue)"
+    //% inlineInputMode=inline
     //% weight=70
-    //% v.min=0 v.max=255 v.defl=50
+    //% rValue.min=0 rValue.max=255 rValue.defl=255
+    //% gValue.min=0 gValue.max=255 gValue.defl=255
+    //% bValue.min=0 bValue.max=255 bValue.defl=255
     //% group="RGB LED"
     //% subcategory="Display"
-    export function setRGB(pin: AnalogWritePin, v: number): void {
-        let port = getAnalogPin(pin)
-        pins.analogWritePin(port, v * 4.01)
+    export function setRGB(
+        rPin: AnalogWritePin,
+        gPin: AnalogWritePin,
+        bPin: AnalogWritePin,
+        rValue: number,
+        gValue: number,
+        bValue: number
+    ): void {
+        let rPort = getAnalogPin(rPin)
+        let gPort = getAnalogPin(gPin)
+        let bPort = getAnalogPin(bPin)
+
+        pins.analogWritePin(rPort, rValue * 4.01)
+        pins.analogWritePin(gPort, gValue * 4.01)
+        pins.analogWritePin(bPort, bValue * 4.01)
     }
     // RGB @end
 
@@ -1234,13 +1279,16 @@ namespace Acebott {
     }
     // Laser @end
 
-    //% blockId=Photoresistance block="Photoresistance at %pin get value"
+    //% blockId=Photoresistance block="Photoresistance at %pin get valuev（0~100）"
     //% weight=70
     //% group="Photoresistance"
     //% subcategory="Sensor"
     export function Photoresistance(pin: AnalogReadPin): number {
         let port = getAnalogPin(pin)
-        return pins.analogReadPin(port)
+        let rawValue = pins.analogReadPin(port)
+
+        let mappedValue = Math.map(rawValue, 0, 1023, 0, 100)
+        return Math.round(mappedValue)
     }
 
     //% blockId=Mosisture_Sensor block="Mosisture Sensor at %pin get value"
@@ -2664,12 +2712,9 @@ namespace Acebott {
     let bmp280Init = false;
     let bmp280: AcebottBMP280;
 
-    function initColor(): void {
-        if (!sugarColorInit) {
-            sugarColor = new SugarColor()
-            sugarColorInit = true
-        }
-    }
+    //  舵机相关代码 
+    let servoMap: { [key: number]: SugarServo } = {}
+
 
     function initOLED(): void {
         if (!oledInit) {
@@ -2684,32 +2729,48 @@ namespace Acebott {
             bmp280Init = true
         }
     }
-/*    // % blockId=colorUpdate block="color sensor update value"
-    // % subcategory="Sensor"
-    // % group="ColorModules-V2"   */
-    export function colorUpdate(): void {
-        initColor()
-        sugarColor.update()
+
+    function initColor(): void {
+        if (!sugarColorInit) {
+            sugarColor = new SugarColor()
+            sugarColorInit = true
+        }
     }
 
-    export enum colorType {
-        //% block="red"
+    // RGB通道选择枚举
+    export enum RGBChannel {
+        //% block="R"
         Red = 0,
-        //% block="green"
+        //% block="G"
         Green = 1,
-        //% block="blue"
-        Blue = 2,
-        //% block="hue"
-        Hue = 3,
+        //% block="B"
+        Blue = 2
     }
 
-    //% blockId=colorValue block="color sensor get %type value"
+    //% blockId=colorDetect block="color sensor detect color"
     //% subcategory="Sensor"
     //% group="ColorModules-V2"
-    export function colorValue(type: colorType): number {
+    export function colorDetect(): string {
+        initColor()
+        return sugarColor.detectColor()
+    }
+
+    //% blockId=getRGBValue block="get %channel value"
+    //% subcategory="Sensor"
+    //% group="ColorModules-V2"
+    export function getRGBValue(channel: RGBChannel): number {
         initColor()
         sugarColor.update()
-        return sugarColor.getValue(type)
+        switch (channel) {
+            case RGBChannel.Red:
+                return sugarColor.red
+            case RGBChannel.Green:
+                return sugarColor.green
+            case RGBChannel.Blue:
+                return sugarColor.blue
+            default:
+                return 0
+        }
     }
 
     //% blockId=oledShowNumber block="OLED show number %num at X %x Y %y"
@@ -2777,5 +2838,37 @@ namespace Acebott {
     export function bmp280SetAddress(addr: BMP280_I2C_ADDRESS): void {
         initBMP280()
         bmp280.setAddress(addr)
+    }
+
+    function initServo(pin: ServoPin): SugarServo {
+        if (!servoMap[pin]) {
+
+            let analogPin: AnalogPin
+
+            switch (pin) {
+                case ServoPin.P0: analogPin = AnalogPin.P0; break
+                case ServoPin.P1: analogPin = AnalogPin.P1; break
+                case ServoPin.P2: analogPin = AnalogPin.P2; break
+                case ServoPin.P3: analogPin = AnalogPin.P3; break
+                case ServoPin.P4: analogPin = AnalogPin.P4; break
+                case ServoPin.P5: analogPin = AnalogPin.P5; break
+                case ServoPin.P6: analogPin = AnalogPin.P6; break
+                case ServoPin.P7: analogPin = AnalogPin.P7; break
+                case ServoPin.P8: analogPin = AnalogPin.P8; break
+                case ServoPin.P9: analogPin = AnalogPin.P9; break
+                case ServoPin.P10: analogPin = AnalogPin.P10; break
+                case ServoPin.P11: analogPin = AnalogPin.P11; break
+                case ServoPin.P12: analogPin = AnalogPin.P12; break
+                case ServoPin.P13: analogPin = AnalogPin.P13; break
+                case ServoPin.P14: analogPin = AnalogPin.P14; break
+                case ServoPin.P15: analogPin = AnalogPin.P15; break
+                case ServoPin.P16: analogPin = AnalogPin.P16; break
+                default: analogPin = AnalogPin.P0
+            }
+
+            servoMap[pin] = new SugarServo(analogPin)
+        }
+
+        return servoMap[pin]
     }
 }
