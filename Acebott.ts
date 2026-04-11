@@ -35,8 +35,6 @@ enum AnalogWritePin {
     P4 = 4,
     //% block="P10"
     P10 = 10
-
-
 }
 
 enum UARTPin {
