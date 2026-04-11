@@ -165,13 +165,6 @@ enum Servos {
     Servo2 = 2
 }
 
-enum RGB_Index {
-    //% block="RGB1"
-    RGB1 = 1,
-    //% block="RGB2"
-    RGB2 = 2
-}
-
 enum Motors {
     //% block="M1"
     M1 = 0,
@@ -561,7 +554,7 @@ namespace Acebott {
     * @param index Servo Channel; eg: S1, S2
     * @param degree [0-180] degree of servo; eg: 0, 90, 180
    */
-    //% blockId=Servo_IIC block="180 Servo|%index|degree %degree"
+    //% blockId=Servo_IIC block="180° Servo|%index|degree %degree"
     //% degree.min=0 degree.max=180
     //% group="Servo"
     //% subcategory="Executive"
@@ -574,7 +567,7 @@ namespace Acebott {
         setPwm(index * 5, 0, value)
     }
 
-    //% blockId=Servo_IO block="180 Servo|%pin|degree %degree"
+    //% blockId=Servo_IO block="180° Servo|%pin|degree %degree"
     //% degree.min=0 degree.max=180
     //% group="Servo"
     //% subcategory="Executive"
@@ -593,7 +586,7 @@ namespace Acebott {
         Reverse = -1
     }
     
-    //% blockId=servoRunDir block="360 Servo %pin run %direction speed %speed"
+    //% blockId=servoRunDir block="360° Servo %pin run %direction speed %speed"
     //% subcategory="Executive"
     //% group="Servo"
     //% speed.min=0 speed.max=100
@@ -608,7 +601,7 @@ namespace Acebott {
         s.run(finalSpeed)
     }
 
-    //% blockId=servoStop block="360 Servo %pin stop"
+    //% blockId=servoStop block="360° Servo %pin stop"
     //% subcategory="Executive"
     //% group="Servo"
     export function servoStop(pin: ServoPin): void {
@@ -653,34 +646,6 @@ namespace Acebott {
         pins.analogWritePin(bPort, bValue * 4.01)
     }
     // RGB @end
-
-    // RGB OnBoard @start
-    //% blockId=RGB_OnBoard block="RGB on board |%index|show(R:|%red|G:|%green|B:|%blue|)"
-    //% red.min=0 red.max=255
-    //% green.min=0 green.max=255
-    //% blue.min=0 blue.max=255
-    //% group="RGB LED"
-    //% subcategory="Display"
-    //% inlineInputMode=inline
-    export function RGB_OnBoard(index: RGB_Index, red: number, green: number, blue: number): void {
-        if (!initialized) {
-            initPCA9685()
-        }
-
-        switch (index) {
-            case 1:
-                setPwm(1, 0, red * 16)
-                setPwm(0, 0, green * 16)
-                setPwm(2, 0, blue * 16)
-                break
-            case 2:
-                setPwm(14, 0, red * 16)
-                setPwm(13, 0, green * 16)
-                setPwm(15, 0, blue * 16)
-                break
-        }
-    }
-    // RGB OnBoard @end
 
     // DC Motor @start
     const MOTORS_PIN: number[][] = [[4, 3], [12, 11], [7, 6], [9, 8]]
@@ -1355,7 +1320,7 @@ namespace Acebott {
     let Ypin = 0
     let Bpin = 0
 
-    //% blockId=rockerPin block="rockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" group="摇杆模块"
+    //% blockId=rockerPin block="rockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" group="Joystick module"
     //% weight=70
     //% subcategory="Sensor"
     export function rockerPin(pinx: AnalogPin, piny: AnalogPin, pinb: DigitalPin): void {
@@ -1364,7 +1329,7 @@ namespace Acebott {
         Bpin = pinb
     }
 
-    //% blockId=_analogRead block="select analog pin  %selectpin" group="摇杆模块"
+    //% blockId=_analogRead block="select analog pin  %selectpin" group="Joystick module"
     //% weight=69
     //% subcategory="Sensor"
     export function _analogRead(selectpin: _rockerpin): number {

@@ -145,23 +145,23 @@ class SugarColor {
 
         // 颜色识别对比
         if (redRaw > 240 && blueRaw < 120 && greenRaw < 160)  {
-            colorName = "red"//colorName = "Rojo"
+            colorName = "Rojo"//colorName = "Rojo"red
         } else if (redRaw < 100 && blueRaw < 200 && greenRaw > 100)  {
-            colorName = "green"//colorName = "Verde"
+            colorName = "Verde"//colorName = "Verde"green
         } else if (redRaw < 100 && blueRaw > 240 && greenRaw < 210)  {
-            colorName = "blue"//colorName = "Azul"
+            colorName = "Azul"//colorName = "Azul"blue
         } else if (redRaw > 140 && greenRaw > 140 && blueRaw < 140) {
-            colorName = "yellow"//colorName = "Amarillo"
+            colorName = "Amarillo"//colorName = "Amarillo"yellow
         } else if (redRaw > 180 && blueRaw > 180 && greenRaw < 180) {
-            colorName = "purple"//colorName = "Púrpura"
+            colorName = "Purpura"//colorName = "Púrpura"purple
         } else if (greenRaw > 200 && blueRaw > 180 && redRaw < 180) {
-            colorName = "cyan"//colorName = "Cyan"
+            colorName = "Cyan"//colorName = "Cyan"cyan
         } else if (redRaw > 250 && greenRaw > 250 && blueRaw > 250) {
-            colorName = "White"//colorName = "Blanco"
+            colorName = "Blanco"//colorName = "Blanco"White
         } else if (redRaw < 50 && greenRaw < 50 && blueRaw < 50) {
-            colorName = "Black"//colorName = "Negro"
+            colorName = "Negro"//colorName = "Negro"Black
         } else {
-            colorName = "unknown"//colorName = "Desconocido"
+            colorName = "Desconocido"//colorName = "Desconocido"unknown
         }
 
         // 打印格式：Rojo(R-240, G-15, B-20)
