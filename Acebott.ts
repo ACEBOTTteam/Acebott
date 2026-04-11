@@ -1318,8 +1318,9 @@ namespace Acebott {
     let Ypin = 0
     let Bpin = 0
 
-    //% blockId=rockerPin block="rockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" group="Joystick module"
+    //% blockId=rockerPin block="rockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" 
     //% weight=70
+    //% group="Joystick module"
     //% subcategory="Sensor"
     export function rockerPin(pinx: AnalogPin, piny: AnalogPin, pinb: DigitalPin): void {
         Xpin = pinx
@@ -1327,9 +1328,10 @@ namespace Acebott {
         Bpin = pinb
     }
 
-    //% blockId=_analogRead block="select analog pin  %selectpin" group="Joystick module"
+    //% blockId=_analogRead block="select analog pin  %selectpin"
     //% weight=69
-    //% subcategory="Sensor"
+    //% group="Joystick module"
+   //% subcategory="Sensor"
     export function _analogRead(selectpin: _rockerpin): number {
         let a
         if (selectpin == 0)
@@ -1339,8 +1341,9 @@ namespace Acebott {
         return pins.analogReadPin(a)
     }
 
-    //% blockId=_digitalRead block="Is the rocker module pressed?" group="摇杆模块"
+    //% blockId=_digitalRead block="Is the rocker module pressed?"
     //% weight=68
+    //% group="Joystick module"
     //% subcategory="Sensor"
     export function _digitalRead(): boolean {
         // pins.digitalWritePin(Bpin, 0)
@@ -2700,6 +2703,7 @@ namespace Acebott {
         }
     }
 
+
     // RGB通道选择枚举
     export enum RGBChannel {
         //% block="R"
@@ -2710,6 +2714,26 @@ namespace Acebott {
         Blue = 2
     }
 
+    // 颜色选择枚举
+    export enum ColorName {
+        //% block="red"
+        Red = 0,
+        //% block="green"
+        Green = 1,
+        //% block="blue"
+        Blue = 2,
+        //% block="yellow"
+        Yellow = 3,
+        //% block="purple"
+        Purple = 4,
+        //% block="cyan"
+        Cyan = 5,
+        //% block="white"
+        White = 6,
+        //% block="black"
+        Black = 7
+    }
+
     //% blockId=colorDetect block="color sensor detect color"
     //% subcategory="Sensor"
     //% group="ColorModules-V2"
@@ -2718,7 +2742,7 @@ namespace Acebott {
         return sugarColor.detectColor()
     }
 
-    //% blockId=getRGBValue block="get %channel value"
+    //% blockId=getRGBValue block="color sensor get %channel value"
     //% subcategory="Sensor"
     //% group="ColorModules-V2"
     export function getRGBValue(channel: RGBChannel): number {
@@ -2736,6 +2760,43 @@ namespace Acebott {
         }
     }
 
+    //% blockId=isColor block="color sensor is %color"
+    //% subcategory="Sensor"
+    //% group="ColorModules-V2"
+    export function isColor(color: ColorName): number {
+        initColor()
+        let colorStr = ""
+        switch (color) {
+            case ColorName.Red:
+                colorStr = "red"
+                break
+            case ColorName.Green:
+                colorStr = "green"
+                break
+            case ColorName.Blue:
+                colorStr = "blue"
+                break
+            case ColorName.Yellow:
+                colorStr = "yellow"
+                break
+            case ColorName.Purple:
+                colorStr = "purple"
+                break
+            case ColorName.Cyan:
+                colorStr = "cyan"
+                break
+            case ColorName.White:
+                colorStr = "white"
+                break
+            case ColorName.Black:
+                colorStr = "black"
+                break
+        }
+        let result = sugarColor.checkColor(colorStr)
+        serial.writeLine("" + result)
+        return result
+    }
+    
     //% blockId=oledShowNumber block="OLED show number %num at X %x Y %y"
     //% subcategory="Display"
     //% group="OLED12864-1.3inch"
