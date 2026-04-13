@@ -577,12 +577,13 @@ namespace Acebott {
         pins.servoWritePin(port, degree)
     }
 
-    export enum ServoDirection {
-        //% block="forward"
-        Forward = 1,
-        //% block="reverse"
-        Reverse = -1
-    }
+
+export enum ServoDirection {
+    //% block="counterclockwise"
+    counterclockwise = 1,
+    //% block="clockwise"
+    clockwise = -1
+}
     
     //% blockId=servoRunDir block="360° Servo %pin run %direction speed %speed"
     //% subcategory="Executive"
@@ -1306,7 +1307,7 @@ namespace Acebott {
         return Math.round(temp * 100) / 100;
     }
 
-    //% blockId=actuator_buzzer1 block="actuator_buzzer1 pin %pin|freq %freq"
+    //% blockId=actuator_buzzer1 block="Actuator_buzzer1 pin %pin|freq %freq"
     //% weight=70  buzzer
     //% group="buzzer Sensor"
     //% subcategory="Executive"
@@ -1318,9 +1319,9 @@ namespace Acebott {
     let Ypin = 0
     let Bpin = 0
 
-    //% blockId=rockerPin block="rockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" 
+    //% blockId=rockerPin block="RockerPin setup | pinX %pinx|pinY %piny|pinB %pinb" 
     //% weight=70
-    //% group="Joystick module"
+    //% group="Joystick Sensor"
     //% subcategory="Sensor"
     export function rockerPin(pinx: AnalogPin, piny: AnalogPin, pinb: DigitalPin): void {
         Xpin = pinx
@@ -1328,9 +1329,9 @@ namespace Acebott {
         Bpin = pinb
     }
 
-    //% blockId=_analogRead block="select analog pin  %selectpin"
+    //% blockId=_analogRead block="Select analog pin  %selectpin"
     //% weight=69
-    //% group="Joystick module"
+    //% group="Joystick Sensor"
    //% subcategory="Sensor"
     export function _analogRead(selectpin: _rockerpin): number {
         let a
@@ -1343,7 +1344,7 @@ namespace Acebott {
 
     //% blockId=_digitalRead block="Is the rocker module pressed?"
     //% weight=68
-    //% group="Joystick module"
+    //% group="Joystick Sensor"
     //% subcategory="Sensor"
     export function _digitalRead(): boolean {
         // pins.digitalWritePin(Bpin, 0)
@@ -2428,7 +2429,7 @@ namespace Acebott {
         pins.i2cWriteBuffer(0x18, buf);     //数据发送
     }
 
-    //% blockId=motors block="Left wheel speed %lspeed\\% | right speed %rspeed\\%"
+    //% blockId=motors block="Left wheel speed %lspeed\\% | Right speed %rspeed\\%"
     //% lspeed.min=-100 lspeed.max=100
     //% rspeed.min=-100 rspeed.max=100
     //% weight=100
@@ -2734,7 +2735,7 @@ namespace Acebott {
         Black = 7
     }
 
-    //% blockId=colorDetect block="color sensor detect color"
+    //% blockId=colorDetect block="Color sensor detect color"
     //% subcategory="Sensor"
     //% group="ColorModules-V2"
     export function colorDetect(): string {
@@ -2742,7 +2743,7 @@ namespace Acebott {
         return sugarColor.detectColor()
     }
 
-    //% blockId=getRGBValue block="color sensor get %channel value"
+    //% blockId=getRGBValue block=" Color sensor get %channel value"
     //% subcategory="Sensor"
     //% group="ColorModules-V2"
     export function getRGBValue(channel: RGBChannel): number {
@@ -2760,42 +2761,44 @@ namespace Acebott {
         }
     }
 
-    //% blockId=isColor block="color sensor is %color"
-    //% subcategory="Sensor"
-    //% group="ColorModules-V2"
-    export function isColor(color: ColorName): number {
-        initColor()
-        let colorStr = ""
-        switch (color) {
-            case ColorName.Red:
-                colorStr = "red"
-                break
-            case ColorName.Green:
-                colorStr = "green"
-                break
-            case ColorName.Blue:
-                colorStr = "blue"
-                break
-            case ColorName.Yellow:
-                colorStr = "yellow"
-                break
-            case ColorName.Purple:
-                colorStr = "purple"
-                break
-            case ColorName.Cyan:
-                colorStr = "cyan"
-                break
-            case ColorName.White:
-                colorStr = "white"
-                break
-            case ColorName.Black:
-                colorStr = "black"
-                break
-        }
-        let result = sugarColor.checkColor(colorStr)
-        serial.writeLine("" + result)
-        return result
+//% blockId=isColor block="Color sensor is %color"
+//% subcategory="Sensor"
+//% group="ColorModules-V2"
+//% blockGap=8
+export function isColor(color: ColorName): boolean {
+    initColor()
+    let colorStr = ""
+    switch (color) {
+        case ColorName.Red:
+            colorStr = "red"
+            break
+        case ColorName.Green:
+            colorStr = "green"
+            break
+        case ColorName.Blue:
+            colorStr = "blue"
+            break
+        case ColorName.Yellow:
+            colorStr = "yellow"
+            break
+        case ColorName.Purple:
+            colorStr = "purple"
+            break
+        case ColorName.Cyan:
+            colorStr = "cyan"
+            break
+        case ColorName.White:
+            colorStr = "white"
+            break
+        case ColorName.Black:
+            colorStr = "black"
+            break
     }
+    let result = sugarColor.checkColor(colorStr)
+    let isMatch = result == 1
+    serial.writeLine("" + (isMatch ? "true" : "false"))
+    return isMatch
+}
     
     //% blockId=oledShowNumber block="OLED show number %num at X %x Y %y"
     //% subcategory="Display"
