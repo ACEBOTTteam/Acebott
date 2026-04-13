@@ -2891,10 +2891,8 @@ export enum ServoDirection {
                 case ServoPin.P16: analogPin = AnalogPin.P16; break
                 default: analogPin = AnalogPin.P0
             }
-
             servoMap[pin] = new SugarServo(analogPin)
         }
-
         return servoMap[pin]
     }
 }
