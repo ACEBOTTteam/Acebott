@@ -142,25 +142,25 @@ class SugarColor {
         let greenRaw = this.green
         let blueRaw = this.blue
 
-        // 颜色识别对比
+        // 颜色识别对比 - 修正为正确的西班牙语
         if (redRaw > 240 && blueRaw < 120 && greenRaw < 160) {
-            return "red"
+            return "Rojo"        // 红色
         } else if (redRaw < 100 && blueRaw < 200 && greenRaw > 100) {
-            return "green"
+            return "Verde"       // 绿色 (修正)
         } else if (redRaw < 100 && blueRaw > 240 && greenRaw < 200) {
-            return "blue"
+            return "Azul"        // 蓝色 (修正)
         } else if (redRaw > 140 && greenRaw > 140 && blueRaw < 140) {
-            return "yellow"
+            return "Amarillo"    // 黄色
         } else if (redRaw > 180 && blueRaw > 180 && greenRaw < 180) {
-            return "purple"
+            return "Púrpura"     // 紫色 (修正)
         } else if (greenRaw > 180 && blueRaw > 180 && redRaw < 180) {
-            return "cyan"
+            return "Cian"        // 青色 (修正)
         } else if (redRaw > 250 && greenRaw > 250 && blueRaw > 250) {
-            return "white"
+            return "Blanco"      // 白色
         } else if (redRaw < 50 && greenRaw < 50 && blueRaw < 50) {
-            return "black"
+            return "Negro"       // 黑色
         } else {
-            return "unknown"
+            return "Desconocido" // 未知
         }
     }
 
@@ -184,28 +184,28 @@ class SugarColor {
 
         let colorName = ""
 
-        // 颜色识别对比
+        // 颜色识别对比 - 修正为正确的西班牙语
         if (redRaw > 240 && blueRaw < 120 && greenRaw < 160) {
-            colorName = "red"
+            colorName = "Rojo"
         } else if (redRaw < 100 && blueRaw < 200 && greenRaw > 100) {
-            colorName = "green"
+            colorName = "Verde"      // 修正
         } else if (redRaw < 100 && blueRaw > 240 && greenRaw < 200) {
-            colorName = "blue"
+            colorName = "Azul"       // 修正
         } else if (redRaw > 140 && greenRaw > 140 && blueRaw < 140) {
-            colorName = "yellow"
+            colorName = "Amarillo"
         } else if (redRaw > 180 && blueRaw > 180 && greenRaw < 180) {
-            colorName = "purple"
+            colorName = "Púrpura"    // 修正
         } else if (greenRaw > 180 && blueRaw > 180 && redRaw < 180) {
-            colorName = "cyan"
+            colorName = "Cian"       // 修正
         } else if (redRaw > 250 && greenRaw > 250 && blueRaw > 250) {
-            colorName = "white"
+            colorName = "Blanco"
         } else if (redRaw < 50 && greenRaw < 50 && blueRaw < 50) {
-            colorName = "black"
+            colorName = "Negro"
         } else {
-            colorName = "unknown"
+            colorName = "Desconocido"
         }
 
-        // 打印格式：red(R-240, G-15, B-20)
+        // 打印格式：Rojo(R-240, G-15, B-20)
         serial.writeString(colorName)
         serial.writeString("(R-")
         serial.writeNumber(redRaw)

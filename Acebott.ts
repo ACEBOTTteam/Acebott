@@ -1282,7 +1282,7 @@ export enum ServoDirection {
     //% blockId=obstacle 
     //% block="Infrared obstacle at %pin get value"
     //% weight=70
-    //% group="infrared bostacle avoidance"
+    //% group="Infrared Bostacle Avoidance"
     //% subcategory="Sensor"
     export function Infraredobstacle(pin: DigitalPin): number {
         return pins.digitalReadPin(pin)
@@ -1299,7 +1299,7 @@ export enum ServoDirection {
 
     //% blockId=sensor_temperature block="Pin %pin reads the analog value of the LM35"
     //% weight=70
-    //% group="LM35 temperature sensor"
+    //% group="LM35 Temperature Sensor"
     //% inlineInputMode=inline
     //% subcategory="Sensor"
     export function sensor_temperature(pin: AnalogPin): number {
@@ -1309,7 +1309,7 @@ export enum ServoDirection {
 
     //% blockId=actuator_buzzer1 block="Actuator_buzzer1 pin %pin|freq %freq"
     //% weight=70  buzzer
-    //% group="buzzer Sensor"
+    //% group="Buzzer Sensor"
     //% subcategory="Executive"
     export function actuator_buzzer1(pin: AnalogPin, freq: number): void {
         pins.analogWritePin(pin, freq)
@@ -1429,7 +1429,7 @@ export enum ServoDirection {
     //% blockId="isButtonPressed"
     //% block="Button at|%pin|is pressed"
     //% pin.defl=DigitalReadPin.P0
-    //% group="Button"
+    //% group="Button Sensor"
     //% subcategory="Sensor"
 
     export function isButtonPressed(pin: DigitalReadPin): boolean {
@@ -2594,7 +2594,7 @@ export enum ServoDirection {
 
 
     //% blockId=joystick block="Read joystick value %dir "
-    //% group="Microbit controller"
+    //% group="Microbit Controller"
     //% subcategory="Executive"
     export function joystick(dir: Rocker): number | boolean {
         switch (dir) {
@@ -2622,7 +2622,7 @@ export enum ServoDirection {
     }
 
     //% blockId=Four_bit_key block="Read the %dir key"
-    //% group="Microbit controller"
+    //% group="Microbit Controller"
     //% subcategory="Executive"
     export function Four_bit_key(dir: Four_key): boolean {
         // 设置引脚的上拉电阻
@@ -2656,7 +2656,7 @@ export enum ServoDirection {
 
     // 控制震动电机
     //% blockId=Vibrating_machine block="Vibrating machine %condition"
-    //% group="Microbit controller"
+    //% group="Microbit Controller"
     //% subcategory="Executive"
     export function Vibrating_machine(condition: Vibration_motor_condition): void {
         if (condition === Vibration_motor_condition.on) {
@@ -2717,21 +2717,21 @@ export enum ServoDirection {
 
     // 颜色选择枚举
     export enum ColorName {
-        //% block="red"
+        //% block="rojo"
         Red = 0,
-        //% block="green"
+        //% block="verde"
         Green = 1,
-        //% block="blue"
+        //% block="azul"
         Blue = 2,
-        //% block="yellow"
+        //% block="amarillo"
         Yellow = 3,
-        //% block="purple"
+        //% block="púrpura"
         Purple = 4,
-        //% block="cyan"
+        //% block="cian"
         Cyan = 5,
-        //% block="white"
+        //% block="blanco"
         White = 6,
-        //% block="black"
+        //% block="negro"
         Black = 7
     }
 
@@ -2761,45 +2761,44 @@ export enum ServoDirection {
         }
     }
 
-//% blockId=isColor block="Color sensor is %color"
-//% subcategory="Sensor"
-//% group="ColorModules-V2"
-//% blockGap=8
-export function isColor(color: ColorName): boolean {
-    initColor()
-    let colorStr = ""
-    switch (color) {
-        case ColorName.Red:
-            colorStr = "red"
-            break
-        case ColorName.Green:
-            colorStr = "green"
-            break
-        case ColorName.Blue:
-            colorStr = "blue"
-            break
-        case ColorName.Yellow:
-            colorStr = "yellow"
-            break
-        case ColorName.Purple:
-            colorStr = "purple"
-            break
-        case ColorName.Cyan:
-            colorStr = "cyan"
-            break
-        case ColorName.White:
-            colorStr = "white"
-            break
-        case ColorName.Black:
-            colorStr = "black"
-            break
+    //% blockId=isColor block="The target is %color"
+    //% subcategory="Sensor"
+    //% group="ColorModules-V2"
+    //% blockGap=8
+    export function isColor(color: ColorName): boolean {
+        initColor()
+        let colorStr = ""
+        switch (color) {
+            case ColorName.Red:
+                colorStr = "Rojo"
+                break
+            case ColorName.Green:
+                colorStr = "Verde"
+                break
+            case ColorName.Blue:
+                colorStr = "Azul"
+                break
+            case ColorName.Yellow:
+                colorStr = "Amarillo"
+                break
+            case ColorName.Purple:
+                colorStr = "Púrpura"
+                break
+            case ColorName.Cyan:
+                colorStr = "Cian"
+                break
+            case ColorName.White:
+                colorStr = "Blanco"
+                break
+            case ColorName.Black:
+                colorStr = "Negro"
+                break
+        }
+        let result = sugarColor.checkColor(colorStr)
+        let isMatch = result == 1
+        serial.writeLine("" + (isMatch ? "true" : "false"))
+        return isMatch
     }
-    let result = sugarColor.checkColor(colorStr)
-    let isMatch = result == 1
-    serial.writeLine("" + (isMatch ? "true" : "false"))
-    return isMatch
-}
-    
     //% blockId=oledShowNumber block="OLED show number %num at X %x Y %y"
     //% subcategory="Display"
     //% group="OLED12864-1.3inch"
