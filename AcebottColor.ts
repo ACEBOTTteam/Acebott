@@ -27,7 +27,6 @@ let BH1745NUC_ADC_GAIN_16 = 2
 let BH1745NUC_DEFAULT_RESERVED = 2
 
 // 不要使用 export，直接定义 class
-// 不要使用 export，直接定义 class
 class SugarColor {
     red: number
     green: number
@@ -205,15 +204,6 @@ class SugarColor {
             colorName = "Desconocido"
         }
 
-        // 打印格式：Rojo(R-240, G-15, B-20)
-        serial.writeString(colorName)
-        serial.writeString("(R-")
-        serial.writeNumber(redRaw)
-        serial.writeString(", G-")
-        serial.writeNumber(greenRaw)
-        serial.writeString(", B-")
-        serial.writeNumber(blueRaw)
-        serial.writeLine(")")
-        return colorName
+        return colorName + "(R-" + redRaw + ", G-" + greenRaw + ", B-" + blueRaw + ")"
     }
 }
