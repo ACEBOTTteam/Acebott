@@ -1243,16 +1243,14 @@ export enum ServoDirection {
     }
     // Laser @end
 
-    //% blockId=Photoresistance block="Photoresistance at %pin get valuev（0~100）"
+    //% blockId=Photoresistance block="Photoresistance at %pin get valuev"
     //% weight=70
     //% group="Photoresistance Sensor"
     //% subcategory="Sensor"
     export function Photoresistance(pin: AnalogReadPin): number {
-        let port = getAnalogPin(pin)
-        let rawValue = pins.analogReadPin(port)
 
-        let mappedValue = Math.map(rawValue, 0, 1023, 0, 100)
-        return Math.round(mappedValue)
+        let port = getAnalogPin(pin)
+        return pins.analogReadPin(port)
     }
 
     //% blockId=Mosisture_Sensor block="Mosisture Sensor at %pin get value"

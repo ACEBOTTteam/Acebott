@@ -17,7 +17,7 @@
     "Acebott.MQ4_Sensor|block": "MQ-4气体传感器接%pin读取值",
     "Acebott.Mosisture|block": "土壤湿度传感接|%pin|读取值",
     "Acebott.PIRMotion|block": "人体红外接|%pin|读取值",
-    "Acebott.Photoresistance|block": "光敏电阻接|%pin|读取值（0~100）",
+    "Acebott.Photoresistance|block": "光敏电阻接|%pin|读取值",
     "Acebott.RFID_getID|block": "RFID读取ID",
     "Acebott.RFID_init|block": "RFID模块初始化",
     "Acebott.RFID_readData|block": "RFID读取数据",
