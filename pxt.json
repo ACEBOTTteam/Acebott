@@ -13,14 +13,16 @@
         "AcebottColor.ts",
         "AcebottOled.ts",
         "AcebottBMP280.ts",
-        "AcebottServo.ts"
+        "AcebottServo.ts",
+        "AcebottRobotShield.ts",
+        "AcebottADC7828.ts"
     ],
     "testFiles": [
         "test.ts"
     ],
     "public": true,
     "targetVersions": {
-        "target": "8.0.21",
+        "target": "9.0.12",
         "targetId": "microbit"
     },
     "supportedTargets": [
