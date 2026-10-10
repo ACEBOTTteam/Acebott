@@ -250,21 +250,21 @@ namespace Acebott {
      * P2 and P12 use the micro:bit pins directly.
      */
     export enum ArmOutputChannel {
-        //% block="angle0"
+        //% block="servo0"
         STC0 = 0,
-        //% block="angle1"
+        //% block="servo1"
         STC1 = 1,
-        //% block="angle2"
+        //% block="servo2"
         STC2 = 2,
-        //% block="angle3"
+        //% block="servo3"
         STC3 = 3,
-        //% block="angle4"
+        //% block="servo4"
         STC4 = 4,
-        //% block="angle5"
+        //% block="servo5"
         STC5 = 5,
-        //% block="angle6"
+        //% block="servo6"
         MicrobitP2 = 6,
-        //% block="angle7"
+        //% block="servo7"
         MicrobitP12 = 7
     }
 
@@ -342,6 +342,8 @@ namespace Acebott {
         ArmOutputChannel.STC3
     ]
     let armJointAngles = [90, 90, 90, 90]
+    // Offset of the active XYZ origin in the original coordinate frame.
+    let armCoordinateOrigin = [0, 0, 0]
     let armLastSpeed = 10
 
     let armMemoryChassis: number[] = []
@@ -647,6 +649,7 @@ namespace Acebott {
         armJointOutputs[ArmJoint.Elbow] = elbow
         armJointOutputs[ArmJoint.Claws] = claws
         armJointAngles = [90, 90, 90, 90]
+        armCoordinateOrigin = [0, 0, 0]
         for (let joint = 0; joint < 4; joint++) {
             writeArmJoint(joint, 90)
         }
@@ -691,9 +694,31 @@ namespace Acebott {
         writeArmPose(chassis, shoulder, elbow, claws)
     }
 
+    /** Reset the four configured joints to 90 degrees and use that pose as XYZ (0,0,0). */
+    //% blockId=armReset block="robotic arm reset"
+    //% group="Microbit Robotic Arm"
+    //% subcategory="Executive"
+    //% weight=93
+    //% help=github:acebott/docs/reference
+    export function armReset(): void {
+        moveArmPose(90, 90, 90, 90, 50)
+        if (armJointAngles[ArmJoint.Chassis] == 90 &&
+            armJointAngles[ArmJoint.Shoulder] == 90 &&
+            armJointAngles[ArmJoint.Elbow] == 90 &&
+            armJointAngles[ArmJoint.Claws] == 90) {
+            armCoordinateOrigin = [
+                armCoordinateValue(ArmCoordinateAxis.X),
+                armCoordinateValue(ArmCoordinateAxis.Y),
+                armCoordinateValue(ArmCoordinateAxis.Z)
+            ]
+        } else {
+            serial.writeLine("Arm reset incomplete")
+        }
+    }
+
     /**
-     * Set angle0-angle7 output angle and movement speed.
-     * angle0-angle5 use STC; angle6 and angle7 use micro:bit P2 and P12.
+     * Set servo0-servo7 output angle and movement speed.
+     * servo0-servo5 use STC; servo6 and servo7 use micro:bit P2 and P12.
      */
     //% blockId=armSetOutput block="set %channel servo angle %angle speed %speed"
     //% channel.defl=ArmOutputChannel.STC0
@@ -752,16 +777,20 @@ namespace Acebott {
         }
     }
 
-    /** Move the robotic arm to an XYZ coordinate in centimeters. */
+    /** Move to XYZ in centimeters, relative to the home pose after armReset. */
     //% blockId=armSetPosition block="robotic arm coordinate control|X %x|Y %y|Z %z"
     //% x.min=-10 x.max=10 x.defl=0
-    //% y.min=5 y.max=16 y.defl=10
-    //% z.min=5 z.max=20 z.defl=10
+    //% y.defl=0
+    //% z.defl=0
     //% group="Microbit Robotic Arm"
     //% subcategory="Executive"
     //% weight=85
     //% help=github:acebott/docs/reference
     export function armSetPosition(x: number, y: number, z: number): void {
+        // Apply the same origin offset that armGetCoordinate subtracts.
+        x += armCoordinateOrigin[ArmCoordinateAxis.X]
+        y += armCoordinateOrigin[ArmCoordinateAxis.Y]
+        z += armCoordinateOrigin[ArmCoordinateAxis.Z]
         if (x < -10 || x > 10 || y < 5 || y > 16 || z < 5 || z > 20) {
             serial.writeLine("Arm XYZ out of range")
             return
@@ -803,13 +832,8 @@ namespace Acebott {
             armJointAngles[ArmJoint.Claws], armLastSpeed)
     }
 
-    /** Get the current robotic-arm XYZ coordinate in centimeters. */
-    //% blockId=armGetCoordinate block="get robotic arm coordinate %axis"
-    //% group="Microbit Robotic Arm"
-    //% subcategory="Executive"
-    //% weight=80
-    //% help=github:acebott/docs/reference
-    export function armGetCoordinate(axis: ArmCoordinateAxis): number {
+    // Coordinate estimate from cached target angles, in the original frame.
+    function armCoordinateValue(axis: ArmCoordinateAxis): number {
         let shoulderRadians =
             (armJointAngles[ArmJoint.Shoulder] - 90) * ARM_DEG_TO_RAD
         let elbowRadians =
@@ -824,13 +848,23 @@ namespace Acebott {
         let x = radial * Math.sin(chassisRadians)
         let y = radial * Math.cos(chassisRadians)
 
-        // Keep one decimal place (0.1 cm) instead of rounding to integers.
         if (axis == ArmCoordinateAxis.X) {
-            return Math.round(x * 10) / 10
+            return x
         } else if (axis == ArmCoordinateAxis.Y) {
-            return Math.round(y * 10) / 10
+            return y
         }
-        return Math.round(z * 10) / 10
+        return z
+    }
+
+    /** Get modeled XYZ in centimeters; armReset makes the home pose the origin. */
+    //% blockId=armGetCoordinate block="get robotic arm coordinate %axis"
+    //% group="Microbit Robotic Arm"
+    //% subcategory="Executive"
+    //% weight=80
+    //% help=github:acebott/docs/reference
+    export function armGetCoordinate(axis: ArmCoordinateAxis): number {
+        // Keep one decimal place (0.1 cm) after subtracting the shared origin.
+        return Math.round((armCoordinateValue(axis) - armCoordinateOrigin[axis]) * 10) / 10
     }
 
     /** Get the current angle of one robotic-arm joint. */
@@ -893,7 +927,7 @@ namespace Acebott {
     let armOutputLastAngles = [-1, -1, -1, -1, -1, -1, -1, -1]
 
     function writeArmOutput(channel: ArmOutputChannel, angle: number): void {
-        angle = Math.constrain(angle, 0, 180)
+        angle = Math.constrain(Math.round(angle), 0, 180)
 
         if (channel <= ArmOutputChannel.STC5) {
             stcServoAngle(channel, angle)
@@ -901,6 +935,14 @@ namespace Acebott {
             pins.servoWritePin(AnalogPin.P2, angle)
         } else if (channel == ArmOutputChannel.MicrobitP12) {
             pins.servoWritePin(AnalogPin.P12, angle)
+        }
+        // Keep output and mapped-joint caches synchronized, including after reset.
+        armOutputAngles[channel] = angle
+        armOutputLastAngles[channel] = angle
+        for (let joint = 0; joint < 4; joint++) {
+            if (armJointOutputs[joint] == channel) {
+                armJointAngles[joint] = angle
+            }
         }
     }
 
