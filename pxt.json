@@ -15,7 +15,8 @@
         "AcebottBMP280.ts",
         "AcebottServo.ts",
         "AcebottRobotShield.ts",
-        "AcebottADC7828.ts"
+        "AcebottADC7828.ts",
+        "AcebottArmApp.ts"
     ],
     "testFiles": [
         "test.ts"

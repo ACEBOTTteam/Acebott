@@ -298,7 +298,15 @@ namespace Acebott {
         //% block="run"
         Run = 1,
         //% block="delete"
-        Delete = 2
+        Delete = 2,
+        //% block="start recording"
+        StartRecording = 3,
+        //% block="end recording"
+        EndRecording = 4,
+        //% block="run in a loop"
+        RunLoop = 5,
+        //% block="stop playback"
+        Stop = 6
     }
 
     /** Cartesian coordinate axes. */
@@ -357,6 +365,24 @@ namespace Acebott {
     let armCoordinateOrigin = [0, 0, 0]
     let armLastSpeed = 10
 
+    // APP control supplies scheduling while the existing action blocks stay reusable.
+    let armAppJointHook: (joint: ArmJoint, angle: number, speed: number) => void = null
+    let armAppPositionHook: (x: number, y: number, z: number) => void = null
+    let armAppHomeHook: () => void = null
+    let armAppMemoryHook: (mode: ArmMemoryMode) => void = null
+
+    export function armAttachAppControl(
+        joint: (joint: ArmJoint, angle: number, speed: number) => void,
+        position: (x: number, y: number, z: number) => void,
+        home: () => void,
+        memory: (mode: ArmMemoryMode) => void
+    ): void {
+        armAppJointHook = joint
+        armAppPositionHook = position
+        armAppHomeHook = home
+        armAppMemoryHook = memory
+    }
+
     let armMemoryChassis: number[] = []
     let armMemoryShoulder: number[] = []
     let armMemoryElbow: number[] = []
@@ -371,6 +397,7 @@ namespace Acebott {
     // XYZ conversion and measured calibration from the supplied IK-v1 program.
     let ARM_XYZ_MOVE_STEP_MS = 10
     let armXYZBusy = false
+    let armXYZLastResult = ""
     let armXYZCalibrationReady = false
     // Measured XYZ -> chassis, shoulder, elbow (same index across the arrays).
     // IK-v1 keeps the Z2 records and the three latest centre-line records at Z3..5.
@@ -757,6 +784,15 @@ namespace Acebott {
     //% weight=95
     //% help=github:acebott/docs/reference
     export function armSetJoint(joint: ArmJoint, angle: number, speed: number): void {
+        if (armAppJointHook) {
+            armAppJointHook(joint, angle, speed)
+        } else {
+            armExecuteJoint(joint, angle, speed)
+        }
+    }
+
+    /** Shared joint driver; the APP scheduler uses it after queuing a target. */
+    export function armExecuteJoint(joint: ArmJoint, angle: number, speed: number): void {
         let targets = [
             armJointAngles[ArmJoint.Chassis],
             armJointAngles[ArmJoint.Shoulder],
@@ -832,7 +868,11 @@ namespace Acebott {
     //% weight=89
     //% help=github:acebott/docs/reference
     export function armHomePose(): void {
-        moveArmPose(90, 90, 90, 90, armLastSpeed)
+        if (armAppHomeHook) {
+            armAppHomeHook()
+        } else {
+            moveArmPose(90, 90, 90, 90, armLastSpeed)
+        }
     }
 
     /** Reset the four configured joints to 90 degrees and use that pose as XYZ (0,0,0). */
@@ -909,12 +949,16 @@ namespace Acebott {
     //% weight=90
     //% help=github:acebott/docs/reference
     export function armMemory(mode: ArmMemoryMode): void {
-        if (mode == ArmMemoryMode.Save) {
+        if (armAppMemoryHook) {
+            armAppMemoryHook(mode)
+        } else if (mode == ArmMemoryMode.Save) {
             saveArmPose()
         } else if (mode == ArmMemoryMode.Run) {
             runArmPoses()
-        } else {
+        } else if (mode == ArmMemoryMode.Delete) {
             deleteArmPoses()
+        } else {
+            serial.writeLine("APP memory control is not prepared")
         }
     }
 
@@ -940,10 +984,12 @@ namespace Acebott {
                 Acebott.armSetPose(c, s, e, g)
                 if (Acebott.armGetJointAngle(Acebott.ArmJoint.Chassis) != c || Acebott.armGetJointAngle(Acebott.ArmJoint.Shoulder) != s || Acebott.armGetJointAngle(Acebott.ArmJoint.Elbow) != e || Acebott.armGetJointAngle(Acebott.ArmJoint.Claws) != g) {
                     serial.writeLine("POSE REJECTED stage=" + armXYZTransportStage + " C=" + c + " S=" + s + " E=" + e + " G=" + g)
+                    armXYZLastResult = "XYZ JOINT LIMIT"
                     armXYZTransportRunning = false
                 }
             } else {
                 serial.writeLine("JOINT LIMIT stage=" + armXYZTransportStage + " C=" + c + " S=" + s + " E=" + e + " G=" + g + " Smin=" + Math.ceil(armXYZMinimumShoulder))
+                armXYZLastResult = "XYZ JOINT LIMIT"
                 armXYZTransportRunning = false
             }
         }
@@ -986,6 +1032,7 @@ namespace Acebott {
                 let modelDistance = Math.sqrt(modelRadius * modelRadius + ARM_BASE_HEIGHT * ARM_BASE_HEIGHT)
                 if (modelRadius < 0 || modelDistance > ARM_SHOULDER_LENGTH + ARM_ELBOW_LENGTH || modelDistance < Math.abs(ARM_SHOULDER_LENGTH - ARM_ELBOW_LENGTH)) {
                     serial.writeLine("CALIBRATION NOT AVAILABLE: target r=" + radius + " Z=" + z + "; correction r=" + modelRadius)
+                    armXYZLastResult = "XYZ CALIBRATION ERROR"
                     armXYZTransportRunning = false
                 } else {
                     armXYZCalculateModelPose(0, modelRadius, 0)
@@ -1118,6 +1165,7 @@ namespace Acebott {
             serial.writeLine("XYZ X=" + x + " Y=" + y + " Z=" + z + " -> C=" + armXYZOutputChassis + " S=" + armXYZOutputShoulder + " E=" + armXYZOutputElbow)
             if (!(armXYZOutputChassis >= 0 && armXYZOutputChassis <= 180 && armXYZOutputShoulder >= 0 && armXYZOutputShoulder <= 180 && armXYZOutputElbow >= 0 && armXYZOutputElbow <= 120)) {
                 serial.writeLine("XYZ ANGLE LIMIT")
+                armXYZLastResult = "XYZ JOINT LIMIT"
                 armXYZTransportRunning = false
             }
         }
@@ -1128,6 +1176,7 @@ namespace Acebott {
                     let mismatch = Math.sqrt((x - armXYZCalibrationX[index]) * (x - armXYZCalibrationX[index]) + (y - armXYZCalibrationY[index]) * (y - armXYZCalibrationY[index]) + (z - armXYZCalibrationZ[index]) * (z - armXYZCalibrationZ[index]))
                     if (mismatch > 1) {
                         serial.writeLine("UNCALIBRATED TARGET: these angles were measured at X=" + armXYZCalibrationX[index] + " Y=" + armXYZCalibrationY[index] + " Z=" + armXYZCalibrationZ[index])
+                        armXYZLastResult = "XYZ CALIBRATION ERROR"
                         armXYZTransportRunning = false
                     }
                 }
@@ -1137,6 +1186,7 @@ namespace Acebott {
             armXYZMovePoseSlow(armXYZOutputChassis, armXYZOutputShoulder, armXYZOutputElbow, armXYZClaws)
             if (armXYZTransportRunning && (Acebott.armGetJointAngle(Acebott.ArmJoint.Chassis) != armXYZOutputChassis || Acebott.armGetJointAngle(Acebott.ArmJoint.Shoulder) != armXYZOutputShoulder || Acebott.armGetJointAngle(Acebott.ArmJoint.Elbow) != armXYZOutputElbow || Acebott.armGetJointAngle(Acebott.ArmJoint.Claws) != armXYZClaws)) {
                 serial.writeLine("XYZ JOINT LIMIT")
+                armXYZLastResult = "XYZ JOINT LIMIT"
                 armXYZTransportRunning = false
             }
         }
@@ -1149,6 +1199,7 @@ namespace Acebott {
             armXYZDistance2 = Math.sqrt(armXYZHorizontal * armXYZHorizontal + armXYZVertical * armXYZVertical)
             if (armXYZDistance2 == 0) {
                 serial.writeLine("IK DISTANCE ERROR")
+                armXYZLastResult = "IK DISTANCE ERROR"
                 armXYZTransportRunning = false
             }
         }
@@ -1157,6 +1208,7 @@ namespace Acebott {
             armXYZElbowCos = (0 - (armXYZDistance2 * armXYZDistance2 - ARM_SHOULDER_LENGTH * ARM_SHOULDER_LENGTH - ARM_ELBOW_LENGTH * ARM_ELBOW_LENGTH)) / (2 * ARM_SHOULDER_LENGTH * ARM_ELBOW_LENGTH)
             if (!(armXYZShoulderCos >= -1 && armXYZShoulderCos <= 1 && armXYZElbowCos >= -1 && armXYZElbowCos <= 1)) {
                 serial.writeLine("IK ERROR")
+                armXYZLastResult = "IK ANGLE ERROR"
                 armXYZTransportRunning = false
             }
         }
@@ -1178,9 +1230,11 @@ namespace Acebott {
         armXYZDistance = Math.sqrt(x * x + y * y + (z - ARM_BASE_HEIGHT) * (z - ARM_BASE_HEIGHT))
         if (!(x >= -19 && x <= 19 && y >= 0 && y <= 19 && z >= 0 && z <= 27 && armXYZDistance >= 8 && armXYZDistance <= 19)) {
             serial.writeLine("XYZ OUT OF RANGE")
+            armXYZLastResult = "XYZ OUT OF RANGE"
             armXYZTransportRunning = false
         } else if (x == 0 && y == 0 && z < 20) {
             serial.writeLine("XYZ OUT OF RANGE")
+            armXYZLastResult = "XYZ OUT OF RANGE"
             armXYZTransportRunning = false
         }
     }
@@ -1203,6 +1257,7 @@ namespace Acebott {
                     armXYZCheckPoseLimit(armXYZPoseC, armXYZPoseS, armXYZPoseE, armXYZPoseG)
                     if (!(armXYZPoseAllowed)) {
                         serial.writeLine("PATH LIMIT stage=" + armXYZTransportStage + " step=" + (step + 1) + "/" + armXYZSteps + " C=" + armXYZPoseC + " S=" + armXYZPoseS + " E=" + armXYZPoseE + " G=" + armXYZPoseG + " Smin=" + Math.ceil(armXYZMinimumShoulder))
+                        armXYZLastResult = "XYZ JOINT LIMIT"
                         armXYZTransportRunning = false
                     }
                 }
@@ -1231,11 +1286,21 @@ namespace Acebott {
     //% weight=85
     //% help=github:acebott/docs/reference
     export function armSetPosition(x: number, y: number, z: number): void {
+        if (armAppPositionHook) {
+            armAppPositionHook(x, y, z)
+        } else {
+            armExecutePosition(x, y, z)
+        }
+    }
+
+    /** Shared XYZ implementation; the APP scheduler uses it for queued coordinates. */
+    export function armExecutePosition(x: number, y: number, z: number): void {
         if (armXYZBusy) {
             serial.writeLine("Arm XYZ busy")
             return
         }
         armXYZBusy = true
+        armXYZLastResult = "XYZ BUSY"
         if (!armXYZCalibrationReady) {
             armXYZInitializeCalibrationOffsets()
             armXYZCalibrationReady = true
@@ -1248,8 +1313,26 @@ namespace Acebott {
         armXYZTransportRunning = true
         armXYZClaws = armJointAngles[ArmJoint.Claws]
         armXYZMoveXYZ(x, y, z)
+        if (armXYZTransportRunning) {
+            armXYZLastResult = "XYZ OK"
+        } else if (armXYZLastResult == "XYZ BUSY") {
+            armXYZLastResult = "XYZ JOINT LIMIT"
+        }
         armXYZTransportRunning = false
         armXYZBusy = false
+    }
+
+    /** Result of the latest XYZ request; used by the APP adapter. */
+    export function armGetPositionResult(): string {
+        return armXYZLastResult
+    }
+
+    /** Stop subsequent interpolated XYZ steps without changing the origin. */
+    export function armCancelPositionMove(): void {
+        if (armXYZBusy) {
+            armXYZLastResult = "XYZ CANCELLED"
+            armXYZTransportRunning = false
+        }
     }
 
     // Coordinates are estimates from cached angles and measured calibration points.
