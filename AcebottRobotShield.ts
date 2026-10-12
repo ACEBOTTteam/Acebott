@@ -273,6 +273,24 @@ namespace Acebott {
         Claws = 3
     }
 
+    /** Shared speed presets for joint and XYZ movement. */
+    export enum ArmSpeed {
+        //% block="slow"
+        Slow = 0,
+        //% block="medium"
+        Medium = 1,
+        //% block="fast"
+        Fast = 2
+    }
+
+    /** Open or close the gripper at the classroom defaults. */
+    export enum ArmClawState {
+        //% block="open"
+        Open = 0,
+        //% block="close"
+        Close = 1
+    }
+
     /** Actions for the in-memory pose recorder. */
     export enum ArmMemoryMode {
         //% block="save"
@@ -351,7 +369,7 @@ namespace Acebott {
     let armJoystickLoopStarted = false
 
     // XYZ conversion and measured calibration from the supplied IK-v1 program.
-    const ARM_XYZ_MOVE_STEP_MS = 10
+    let ARM_XYZ_MOVE_STEP_MS = 10
     let armXYZBusy = false
     let armXYZCalibrationReady = false
     // Measured XYZ -> chassis, shoulder, elbow (same index across the arrays).
@@ -767,6 +785,54 @@ namespace Acebott {
         claws: number
     ): void {
         writeArmPose(chassis, shoulder, elbow, claws)
+    }
+
+    /** Select one speed preset for both joint and XYZ moves. */
+    //% blockId=armSetSpeed block="set robotic arm speed %speed"
+    //% speed.defl=ArmSpeed.Slow
+    //% group="Microbit Robotic Arm"
+    //% subcategory="Executive"
+    //% weight=91
+    //% help=github:acebott/docs/reference
+    export function armSetSpeed(speed: ArmSpeed): void {
+        if (speed == ArmSpeed.Slow) {
+            armLastSpeed = 10
+            ARM_XYZ_MOVE_STEP_MS = 20
+        } else if (speed == ArmSpeed.Medium) {
+            armLastSpeed = 50
+            ARM_XYZ_MOVE_STEP_MS = 10
+        } else {
+            armLastSpeed = 90
+            ARM_XYZ_MOVE_STEP_MS = 5
+        }
+    }
+
+    /** Open to 150 degrees or close to 90 degrees, keeping the other joints still. */
+    //% blockId=armClaw block="robotic arm claw %state"
+    //% state.defl=ArmClawState.Open
+    //% group="Microbit Robotic Arm"
+    //% subcategory="Executive"
+    //% weight=90
+    //% help=github:acebott/docs/reference
+    export function armClaw(state: ArmClawState): void {
+        let targetClaws = state == ArmClawState.Open ? 150 : 90
+        moveArmPose(
+            armJointAngles[ArmJoint.Chassis],
+            armJointAngles[ArmJoint.Shoulder],
+            armJointAngles[ArmJoint.Elbow],
+            targetClaws,
+            armLastSpeed
+        )
+    }
+
+    /** Return all four joints to 90 degrees without changing the XYZ origin. */
+    //% blockId=armHomePose block="robotic arm return to home pose"
+    //% group="Microbit Robotic Arm"
+    //% subcategory="Executive"
+    //% weight=89
+    //% help=github:acebott/docs/reference
+    export function armHomePose(): void {
+        moveArmPose(90, 90, 90, 90, armLastSpeed)
     }
 
     /** Reset the four configured joints to 90 degrees and use that pose as XYZ (0,0,0). */
