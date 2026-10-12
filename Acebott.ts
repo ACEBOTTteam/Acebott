@@ -2594,17 +2594,17 @@ export enum ServoDirection {
     //% blockId=joystick block="Read joystick value %dir "
     //% group="Microbit Controller"
     //% subcategory="Executive"
-    export function joystick(dir: Rocker): number | boolean {
+    export function joystick(dir: Rocker): number {
         switch (dir) {
             case Rocker.x:
-                return pins.analogReadPin(AnalogPin.P1); // 读取摇杆 X 值
+                return pins.analogReadPin(AnalogPin.P1)
             case Rocker.y:
-                return pins.analogReadPin(AnalogPin.P2); // 读取摇杆 Y 值
+                return pins.analogReadPin(AnalogPin.P2)
             case Rocker.key:
-                pins.setPull(DigitalPin.P8, PinPullMode.PullUp); // 设置按键引脚为上拉模式
-                return pins.digitalReadPin(DigitalPin.P8) === 0; // 读取按键状态，返回布尔值
+                pins.setPull(DigitalPin.P8, PinPullMode.PullUp)
+                return pins.digitalReadPin(DigitalPin.P8) == 0 ? 1 : 0
             default:
-                return false; // 如果传入无效的方向，返回 false
+                return 0
         }
     }
 
