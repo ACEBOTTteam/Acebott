@@ -875,14 +875,15 @@ namespace Acebott {
         }
     }
 
-    /** Reset the four configured joints to 90 degrees and use that pose as XYZ (0,0,0). */
+    /** Smoothly reset the four joints to 90 degrees and use that pose as XYZ (0,0,0). */
     //% blockId=armReset block="robotic arm reset"
     //% group="Microbit Robotic Arm"
     //% subcategory="Executive"
     //% weight=93
     //% help=github:acebott/docs/reference
     export function armReset(): void {
-        moveArmPose(90, 90, 90, 90, 50)
+        let resetSpeed = armLastSpeed
+        moveArmPose(90, 90, 90, 90, resetSpeed)
         if (armJointAngles[ArmJoint.Chassis] == 90 &&
             armJointAngles[ArmJoint.Shoulder] == 90 &&
             armJointAngles[ArmJoint.Elbow] == 90 &&
