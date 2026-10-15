@@ -20,8 +20,6 @@ class AcebottSTC {
         let buf = pins.createBuffer(2)
         buf[0] = Math.round(channel)
         buf[1] = Math.round(degree)
-        // serial.writeLine("channel=" + buf[0] + ", degree=" + buf[1])
-
         pins.i2cWriteBuffer(this.i2cAddr, buf)
     }
 }
@@ -365,9 +363,9 @@ namespace Acebott {
     let armJointAngles = [90, 90, 90, 90]
     // Offset of the active XYZ origin in the original coordinate frame.
     let armCoordinateOrigin = [0, 0, 0]
-    // Largest joint advances by 5 degrees per frame; the final frame reaches the exact target.
-    const ARM_MOVE_STEP_DEGREES = 3
     let armLastSpeed = 10
+    // Keep the selected preset separate from immediate APP joint commands.
+    let armPresetSpeed = 10
 
     // APP control supplies scheduling while the existing action blocks stay reusable.
     let armAppJointHook: (joint: ArmJoint, angle: number, speed: number) => void = null
@@ -583,7 +581,7 @@ namespace Acebott {
 
         // At maximum speed, send only the final target angle. The servo then
         // moves at its own maximum physical speed instead of being slowed by
-        // stepped I2C updates.
+        // one-degree I2C updates.
         if (speed == 100) {
             writeArmPose(chassis, shoulder, elbow, claws)
             return
@@ -610,14 +608,12 @@ namespace Acebott {
         }
 
         let delayMs = armStepDelay(speed)
-        let steps = Math.ceil(maxDelta / ARM_MOVE_STEP_DEGREES)
-        for (let step = 1; step <= steps; step++) {
-            let progress = Math.min(step * ARM_MOVE_STEP_DEGREES, maxDelta) / maxDelta
+        for (let step = 1; step <= maxDelta; step++) {
             writeArmPose(
-                starts[0] + (targets[0] - starts[0]) * progress,
-                starts[1] + (targets[1] - starts[1]) * progress,
-                starts[2] + (targets[2] - starts[2]) * progress,
-                starts[3] + (targets[3] - starts[3]) * progress
+                starts[0] + (targets[0] - starts[0]) * step / maxDelta,
+                starts[1] + (targets[1] - starts[1]) * step / maxDelta,
+                starts[2] + (targets[2] - starts[2]) * step / maxDelta,
+                starts[3] + (targets[3] - starts[3]) * step / maxDelta
             )
             basic.pause(delayMs)
         }
@@ -847,6 +843,13 @@ namespace Acebott {
             armLastSpeed = 90
             ARM_XYZ_MOVE_STEP_MS = 5
         }
+        armPresetSpeed = armLastSpeed
+    }
+
+    /** Internal timing for the non-blocking APP home movement. */
+    //% blockHidden=true
+    export function armGetPresetStepDelay(): number {
+        return armStepDelay(armPresetSpeed)
     }
 
     /** Open to 150 degrees or close to 90 degrees, keeping the other joints still. */
@@ -940,7 +943,7 @@ namespace Acebott {
         let direction = angle > currentAngle ? 1 : -1
         let delayMs = armStepDelay(speed)
         while (currentAngle != angle) {
-            currentAngle += direction * Math.min(ARM_MOVE_STEP_DEGREES, Math.abs(angle - currentAngle))
+            currentAngle += direction
             writeArmOutput(channel, currentAngle)
             basic.pause(delayMs)
         }
@@ -1252,9 +1255,9 @@ namespace Acebott {
             armXYZStartS = Acebott.armGetJointAngle(Acebott.ArmJoint.Shoulder)
             armXYZStartE = Acebott.armGetJointAngle(Acebott.ArmJoint.Elbow)
             armXYZStartG = Acebott.armGetJointAngle(Acebott.ArmJoint.Claws)
-            let maxDelta = Math.max(1, Math.max(Math.max(Math.abs(c - armXYZStartC), Math.abs(s - armXYZStartS)), Math.max(Math.abs(e - armXYZStartE), Math.abs(g - armXYZStartG))))
-            armXYZSteps = Math.ceil(maxDelta)
-            // 仍按 1 度密度预检整条路径；发现超限时，本次移动不发送舵机指令。
+            armXYZSteps = Math.max(Math.max(Math.abs(c - armXYZStartC), Math.abs(s - armXYZStartS)), Math.max(Math.abs(e - armXYZStartE), Math.abs(g - armXYZStartG)))
+            armXYZSteps = Math.max(1, Math.ceil(armXYZSteps))
+            // 先检查全部插值点；发现超限时，本次移动不发送舵机指令。
             for (let step = 0; step <= armXYZSteps - 1; step++) {
                 if (armXYZTransportRunning) {
                     armXYZPoseC = Math.round(armXYZStartC + (c - armXYZStartC) * (step + 1) / armXYZSteps)
@@ -1269,15 +1272,13 @@ namespace Acebott {
                     }
                 }
             }
-            // 预检通过后，每次推进 5 度；最后不足 5 度时补到准确目标。
-            armXYZSteps = Math.ceil(maxDelta / ARM_MOVE_STEP_DEGREES)
+            // 预检通过后，沿同一组插值点移动，并检查四关节缓存。
             for (let step = 0; step <= armXYZSteps - 1; step++) {
                 if (armXYZTransportRunning) {
-                    let progress = Math.min((step + 1) * ARM_MOVE_STEP_DEGREES, maxDelta) / maxDelta
-                    armXYZPoseC = Math.round(armXYZStartC + (c - armXYZStartC) * progress)
-                    armXYZPoseS = Math.round(armXYZStartS + (s - armXYZStartS) * progress)
-                    armXYZPoseE = Math.round(armXYZStartE + (e - armXYZStartE) * progress)
-                    armXYZPoseG = Math.round(armXYZStartG + (g - armXYZStartG) * progress)
+                    armXYZPoseC = Math.round(armXYZStartC + (c - armXYZStartC) * (step + 1) / armXYZSteps)
+                    armXYZPoseS = Math.round(armXYZStartS + (s - armXYZStartS) * (step + 1) / armXYZSteps)
+                    armXYZPoseE = Math.round(armXYZStartE + (e - armXYZStartE) * (step + 1) / armXYZSteps)
+                    armXYZPoseG = Math.round(armXYZStartG + (g - armXYZStartG) * (step + 1) / armXYZSteps)
                     armXYZApplyLimitedPose(armXYZPoseC, armXYZPoseS, armXYZPoseE, armXYZPoseG)
                     armXYZWaitTransport(ARM_XYZ_MOVE_STEP_MS)
                 }

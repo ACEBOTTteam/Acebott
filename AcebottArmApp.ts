@@ -113,8 +113,15 @@ namespace Acebott {
         appCancelXYZ()
         appClearManual()
         appStopPlayback()
-        // 保留原来的回位顺序，但每次更新只执行一个关节、等待由循环安排。
-        // 新的手动或回放指令可取消回位，避免动作争用。
+        appReadAngles()
+        // 从当前已下发角度同步插值；每次更新最多推进 1 度，不阻塞接收事件。
+        appResetSteps = 0
+        for (let joint = 0; joint < 4; joint++) {
+            appResetStart[joint] = appAngles[joint]
+            appResetSteps = Math.max(appResetSteps, Math.abs(90 - appAngles[joint]))
+        }
+        // 使用设置速度积木选定的档位，避免滑块或摇杆的速度 100 覆盖它。
+        appResetDelay = Acebott.armGetPresetStepDelay()
         appResetStep = 0
         appResetting = true
         appResetAt = control.millis()
@@ -122,7 +129,10 @@ namespace Acebott {
     }
 
     let appResetting = false
+    let appResetStart = [90, 90, 90, 90]
+    let appResetSteps = 0
     let appResetStep = 0
+    let appResetDelay = 26
     let appResetAt = 0
     let appResetReport = false
 
@@ -130,23 +140,29 @@ namespace Acebott {
         if (control.millis() < appResetAt) {
             return
         }
-        appSetJoint(appResetStep, 90)
-        appResetStep += 1
-        if (appResetStep == 4) {
-            appResetting = false
+        let accepted = true
+        if (appResetSteps > 0) {
+            appResetStep += 1
             for (let joint = 0; joint < 4; joint++) {
-                appSliderTargets[joint] = appAngles[joint]
+                appPoseAngles[joint] = Math.round(appResetStart[joint] + (90 - appResetStart[joint]) * appResetStep / appResetSteps)
             }
-            if (appAngles[0] == 90 && appAngles[1] == 90 && appAngles[2] == 90 && appAngles[3] == 90) {
-                appStatus("RESET OK")
-            } else {
-                appStatus("RESET JOINT LIMIT")
+            accepted = appWritePose(appPoseAngles[0], appPoseAngles[1], appPoseAngles[2], appPoseAngles[3])
+            if (accepted && appResetStep < appResetSteps) {
+                appResetAt = control.millis() + appResetDelay
+                return
             }
-            if (appResetReport) {
-                appReportAngles()
-            }
+        }
+        appResetting = false
+        for (let joint = 0; joint < 4; joint++) {
+            appSliderTargets[joint] = appAngles[joint]
+        }
+        if (accepted && appAngles[0] == 90 && appAngles[1] == 90 && appAngles[2] == 90 && appAngles[3] == 90) {
+            appStatus("RESET OK")
         } else {
-            appResetAt = control.millis() + 100
+            appStatus("RESET JOINT LIMIT")
+        }
+        if (appResetReport) {
+            appReportAngles()
         }
     }
 
